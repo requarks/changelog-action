@@ -1,0 +1,16 @@
+name: 'Changelog from Conventional Commits'
+description: 'Generate and update the CHANGELOG from conventional commits since last tag'
+author: Nicolas Giard
+inputs:
+  token:
+    description: GitHub Token
+    required: true
+outputs:
+  changelog:
+    description: Generated changelog
+runs:
+  using: 'node12'
+  main: 'index.js'
+branding:
+  icon: wind
+  color: red

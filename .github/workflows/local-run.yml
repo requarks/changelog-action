@@ -1,0 +1,22 @@
+name: Local Run
+
+on:
+  push:
+    tags:
+      - v[0-9]+.[0-9]+.[0-9]+
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    if: ${{ env.ACT }}
+
+    steps:
+      - uses: actions/checkout@v2
+        with:
+          path: changelog-action
+
+      - name: Update CHANGELOG
+        id: changelog
+        uses: ./index.js
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
