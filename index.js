@@ -42,18 +42,18 @@ async function main () {
       }
     }
   `, {
-    owner: 'Requarks',
-    repo: 'wiki'
+    owner,
+    repo
   })
 
   const latestTag = _.get(tagsRaw, 'repository.refs.nodes[0]')
   const previousTag = _.get(tagsRaw, 'repository.refs.nodes[1]')
 
   if (!latestTag) {
-    return core.setFailed('Couldn\'t find the latest tag.')
+    return core.setFailed('Couldn\'t find the latest tag. Make sure you have an existing tag already before creating a new one.')
   }
   if (!previousTag) {
-    return core.setFailed('Couldn\'t find a previous tag. Make sure you have at least 2 tags already.')
+    return core.setFailed('Couldn\'t find a previous tag. Make sure you have at least 2 tags already (current tag + previous initial tag).')
   }
 
   if (latestTag.name !== tag) {
