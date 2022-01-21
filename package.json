@@ -25,9 +25,7 @@
     "@actions/core": "1.6.0",
     "@actions/github": "5.0.0",
     "@conventional-commits/parser": "0.4.1",
-    "commonmark": "0.30.0",
-    "lodash": "4.17.21",
-    "marked": "4.0.10"
+    "lodash": "4.17.21"
   },
   "devDependencies": {
     "eslint": "8.7.0",

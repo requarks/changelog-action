@@ -3,7 +3,6 @@ const core = require('@actions/core')
 const _ = require('lodash')
 const cc = require('@conventional-commits/parser')
 const fs = require('fs').promises
-const commonmark = require('commonmark')
 
 const types = [
   { types: ['feat', 'feature'], header: 'New Features' },
@@ -25,7 +24,7 @@ async function main () {
   const gh = github.getOctokit(token)
   const owner = 'Requarks'
   const repo = 'wiki'
-  const currentISODate = (new Date()).toISOString().substring(0,10)
+  const currentISODate = (new Date()).toISOString().substring(0, 10)
 
   // GET LATEST + PREVIOUS TAGS
 
