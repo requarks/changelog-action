@@ -17,6 +17,7 @@ jobs:
 
       - name: Update CHANGELOG
         id: changelog
-        uses: ./index.js
+        uses: ./
         with:
-          token: ${{ secrets.GITHUB_TOKEN }}
+          token: ${{ github.token }}
+          tag: ${{ env.GITHUB_REF_NAME }}

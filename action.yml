@@ -5,6 +5,13 @@ inputs:
   token:
     description: GitHub Token
     required: true
+  tag:
+    description: The latest tag (which triggered this job)
+    required: true
+  excludeTypes:
+    description: Types to exclude from the Changelog
+    required: false
+    default: build,docs,other,style
 outputs:
   changelog:
     description: Generated changelog
