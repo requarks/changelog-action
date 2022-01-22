@@ -22,8 +22,8 @@ async function main () {
   const tag = core.getInput('tag')
   const excludeTypes = (core.getInput('excludeTypes') || '').split(',').map(t => t.trim())
   const gh = github.getOctokit(token)
-  const owner = 'Requarks'
-  const repo = 'wiki'
+  const owner = github.context.repo.owner
+  const repo = github.context.repo.repo
   const currentISODate = (new Date()).toISOString().substring(0, 10)
 
   // GET LATEST + PREVIOUS TAGS
@@ -81,14 +81,29 @@ async function main () {
   // PARSE COMMITS
 
   const commitsParsed = []
+  const breakingChanges = []
   for (const commit of commits) {
     try {
       const cAst = cc.toConventionalChangelogFormat(cc.parser(commit.commit.message))
       commitsParsed.push({
         ...cAst,
         sha: commit.sha,
-        author: commit.author.login
+        url: commit.html_url,
+        author: commit.author.login,
+        authorUrl: commit.author.html_url
       })
+      for (const note of cAst.notes) {
+        if (note.title === 'BREAKING CHANGE') {
+          breakingChanges.push({
+            sha: commit.sha,
+            url: commit.html_url,
+            subject: cAst.subject,
+            author: commit.author.login,
+            authorUrl: commit.author.html_url,
+            text: note.text
+          })
+        }
+      }
       core.info(`[OK] Commit ${commit.sha} of type ${cAst.type} - ${cAst.subject}`)
     } catch (err) {
       core.info(`[INVALID] Skipping commit ${commit.sha} as it doesn't follow conventional commit format.`)
@@ -117,13 +132,30 @@ async function main () {
     }
     changes.push(`### ${type.header}`)
     for (const commit of matchingCommits) {
-      const scope = commit.scope ? `**${commit.scope}:** ` : ''
-      changes.push(`- ${scope}${commit.subject}`)
+      const scope = commit.scope ? `**${commit.scope}**: ` : ''
+      const subject = commit.subject.replace(/#[0-9]+/g, pr => {
+        const prId = pr.substring(1)
+        return `[${pr}](https://github.com/${owner}/${repo}/pull/${prId}) by [@${commit.author}](${commit.authorUrl})`
+      })
+      changes.push(`- [\`${commit.sha.substring(0, 10)}\`](${commit.url}) - ${scope}${subject}`)
     }
     idx++
   }
 
-  if (changes.length < 1) {
+  if (breakingChanges.length > 0) {
+    changes.push('')
+    changes.push('### BREAKING CHANGES')
+    for (const breakChange of breakingChanges) {
+      const body = breakChange.text.split('\n').map(ln => `  ${ln}`).join('  \n')
+      const subject = breakChange.subject.replace(/#[0-9]+/g, pr => {
+        const prId = pr.substring(1)
+        return `[${pr}](https://github.com/${owner}/${repo}/pull/${prId}) by [@${breakChange.author}](${breakChange.authorUrl})`
+      })
+      changes.push(`- due to [\`${breakChange.sha.substring(0, 10)}\`](${breakChange.url}) - ${subject}:\n\n${body}\n`)
+    }
+  } else if (changes.length > 0) {
+    changes.push('')
+  } else {
     return core.setWarn('Nothing to add to changelog because of excluded types.')
   }
 
@@ -165,7 +197,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   if (firstVersionLine < lines.length) {
     output += '\n' + lines.slice(firstVersionLine).join('\n')
   }
-  output += `\n[${tag}]: https://github.com/${owner}/${repo}/compare/${previousTag.name}...${tag}`
+  output += `[${tag}]: https://github.com/${owner}/${repo}/compare/${previousTag.name}...${tag}`
 
   // WRITE CHANGELOG TO FILE
 
