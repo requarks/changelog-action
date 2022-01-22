@@ -50,7 +50,6 @@ jobs:
 
       - name: (local) Update CHANGELOG
         if: ${{ env.ACT }}
-        id: changelog
         uses: ./
         with:
           token: ${{ github.token }}
