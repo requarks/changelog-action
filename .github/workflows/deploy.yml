@@ -8,12 +8,14 @@ on:
 jobs:
   deploy:
     runs-on: ubuntu-latest
-    if: ${{ !env.ACT }}
 
     steps:
-      - uses: actions/checkout@v2
+      - name: Checkout Code
+        uses: actions/checkout@v2
+        if: ${{ !env.ACT }}
 
       - name: Update CHANGELOG
+        if: ${{ !env.ACT }}
         id: changelog
         uses: ./
         with:
@@ -21,6 +23,7 @@ jobs:
           tag: ${{ github.ref_name }}
 
       - name: Create Release
+        if: ${{ !env.ACT }}
         uses: ncipollo/release-action@v1
         with:
           allowUpdates: true
@@ -30,8 +33,25 @@ jobs:
           token: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Commit CHANGELOG.md
+        if: ${{ !env.ACT }}
         uses: stefanzweifel/git-auto-commit-action@v4
         with:
           branch: main
           commit_message: 'docs: update CHANGELOG.md for ${{ github.ref_name }} [skip ci]'
           file_pattern: CHANGELOG.md
+
+      # LOCAL TEST
+
+      - name: (local) Checkout Code
+        uses: actions/checkout@v2
+        if: ${{ env.ACT }}
+        with:
+          path: changelog-action
+
+      - name: (local) Update CHANGELOG
+        if: ${{ env.ACT }}
+        id: changelog
+        uses: ./
+        with:
+          token: ${{ github.token }}
+          tag: ${{ env.GITHUB_REF_NAME }}
