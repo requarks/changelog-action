@@ -2,9 +2,9 @@
   "name": "changelog-action",
   "version": "1.0.0",
   "description": "GitHub Action to generate changelog from conventional commits",
-  "main": "index.js",
+  "main": "dist/index.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "build": "ncc build index.js -o dist"
   },
   "repository": {
     "type": "git",
@@ -28,6 +28,7 @@
     "lodash": "4.17.21"
   },
   "devDependencies": {
+    "@vercel/ncc": "0.33.1",
     "eslint": "8.7.0",
     "eslint-config-standard": "16.0.3",
     "eslint-plugin-import": "2.25.4",
