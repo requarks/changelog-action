@@ -197,7 +197,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   if (firstVersionLine < lines.length) {
     output += '\n' + lines.slice(firstVersionLine).join('\n')
   }
-  output += `[${tag}]: https://github.com/${owner}/${repo}/compare/${previousTag.name}...${tag}`
+  output += `\n[${tag}]: https://github.com/${owner}/${repo}/compare/${previousTag.name}...${tag}`
 
   // WRITE CHANGELOG TO FILE
 
