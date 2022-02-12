@@ -21,6 +21,7 @@ async function main () {
   const token = core.getInput('token')
   const tag = core.getInput('tag')
   const excludeTypes = (core.getInput('excludeTypes') || '').split(',').map(t => t.trim())
+  const writeToFile = core.getBooleanInput('writeToFile')
   const gh = github.getOctokit(token)
   const owner = github.context.repo.owner
   const repo = github.context.repo.repo
@@ -160,6 +161,8 @@ async function main () {
   }
 
   core.setOutput('changes', changes.join('\n'))
+
+  if (!writeToFile) { return }
 
   // PARSE EXISTING CHANGELOG
 

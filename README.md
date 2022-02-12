@@ -58,6 +58,7 @@ jobs:
 * `token`: Your GitHub token (e.g. `${{ github.token }}`) - **REQUIRED**
 * `tag`: The latest tag which triggered the job. (e.g. `${{ github.ref_name }}`) - **REQUIRED**
 * `excludeTypes`: A comma-separated list of commit types you want to exclude from the changelog (e.g. `doc,chore,perf`) - **Optional** - Default: `build,docs,other,style`
+* `writeToFile`: Should CHANGELOG.md be updated with latest changelog - **Optional** - Default: `true`
 
 ## Outputs
 * `changes`: Generated CHANGELOG changes for the latest tag, without the version / date header (for use in GitHub Releases).
