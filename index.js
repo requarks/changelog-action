@@ -66,14 +66,27 @@ async function main () {
 
   // GET COMMITS
 
-  const commitsRaw = await gh.rest.repos.compareCommits({
-    owner,
-    repo,
-    base: previousTag.target.oid,
-    head: latestTag.target.oid
-  })
-
-  const commits = _.get(commitsRaw, 'data.commits', [])
+  let curPage = 0
+  let totalCommits = 0
+  let hasMoreCommits = false
+  const commits = []
+  do {
+    hasMoreCommits = false
+    curPage++
+    const commitsRaw = await gh.rest.repos.compareCommitsWithBasehead({
+      owner,
+      repo,
+      basehead: `${previousTag.name}...${latestTag.name}`,
+      page: curPage,
+      per_page: 100
+    })
+    totalCommits = _.get(commitsRaw, 'data.total_commits', 0)
+    const rangeCommits = _.get(commitsRaw, 'data.commits', [])
+    commits.push(...rangeCommits)
+    if ((curPage - 1) * 100 + rangeCommits.length < totalCommits) {
+      hasMoreCommits = true
+    }
+  } while (hasMoreCommits)
 
   if (!commits || commits.length < 1) {
     return core.setFailed('Couldn\'t find any commits between latest and previous tags.')
