@@ -26701,6 +26701,7 @@ async function main () {
   const token = core.getInput('token')
   const tag = core.getInput('tag')
   const excludeTypes = (core.getInput('excludeTypes') || '').split(',').map(t => t.trim())
+  const writeToFile = core.getBooleanInput('writeToFile')
   const gh = github.getOctokit(token)
   const owner = github.context.repo.owner
   const repo = github.context.repo.repo
@@ -26745,14 +26746,27 @@ async function main () {
 
   // GET COMMITS
 
-  const commitsRaw = await gh.rest.repos.compareCommits({
-    owner,
-    repo,
-    base: previousTag.target.oid,
-    head: latestTag.target.oid
-  })
-
-  const commits = _.get(commitsRaw, 'data.commits', [])
+  let curPage = 0
+  let totalCommits = 0
+  let hasMoreCommits = false
+  const commits = []
+  do {
+    hasMoreCommits = false
+    curPage++
+    const commitsRaw = await gh.rest.repos.compareCommitsWithBasehead({
+      owner,
+      repo,
+      basehead: `${previousTag.name}...${latestTag.name}`,
+      page: curPage,
+      per_page: 100
+    })
+    totalCommits = _.get(commitsRaw, 'data.total_commits', 0)
+    const rangeCommits = _.get(commitsRaw, 'data.commits', [])
+    commits.push(...rangeCommits)
+    if ((curPage - 1) * 100 + rangeCommits.length < totalCommits) {
+      hasMoreCommits = true
+    }
+  } while (hasMoreCommits)
 
   if (!commits || commits.length < 1) {
     return core.setFailed('Couldn\'t find any commits between latest and previous tags.')
@@ -26841,6 +26855,8 @@ async function main () {
 
   core.setOutput('changes', changes.join('\n'))
 
+  if (!writeToFile) { return }
+
   // PARSE EXISTING CHANGELOG
 
   let chglog = ''
@@ -26877,7 +26893,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   if (firstVersionLine < lines.length) {
     output += '\n' + lines.slice(firstVersionLine).join('\n')
   }
-  output += `[${tag}]: https://github.com/${owner}/${repo}/compare/${previousTag.name}...${tag}`
+  output += `\n[${tag}]: https://github.com/${owner}/${repo}/compare/${previousTag.name}...${tag}`
 
   // WRITE CHANGELOG TO FILE
 
