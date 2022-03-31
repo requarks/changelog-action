@@ -149,7 +149,11 @@ async function main () {
       const scope = commit.scope ? `**${commit.scope}**: ` : ''
       const subject = commit.subject.replace(/#[0-9]+/g, pr => {
         const prId = pr.substring(1)
-        return `[${pr}](https://github.com/${owner}/${repo}/pull/${prId}) by [@${commit.author}](${commit.authorUrl})`
+        if (writeToFile) {
+          return `[${pr}](https://github.com/${owner}/${repo}/pull/${prId}) by [@${commit.author}](${commit.authorUrl})`
+        } else {
+          return `[${pr}](https://github.com/${owner}/${repo}/pull/${prId}) by @${commit.author}`
+        }
       })
       changes.push(`- [\`${commit.sha.substring(0, 10)}\`](${commit.url}) - ${scope}${subject}`)
     }
@@ -163,7 +167,11 @@ async function main () {
       const body = breakChange.text.split('\n').map(ln => `  ${ln}`).join('  \n')
       const subject = breakChange.subject.replace(/#[0-9]+/g, pr => {
         const prId = pr.substring(1)
-        return `[${pr}](https://github.com/${owner}/${repo}/pull/${prId}) by [@${breakChange.author}](${breakChange.authorUrl})`
+        if (writeToFile) {
+          return `[${pr}](https://github.com/${owner}/${repo}/pull/${prId}) by [@${breakChange.author}](${breakChange.authorUrl})`
+        } else {
+          return `[${pr}](https://github.com/${owner}/${repo}/pull/${prId}) by @${breakChange.author}`
+        }
       })
       changes.push(`- due to [\`${breakChange.sha.substring(0, 10)}\`](${breakChange.url}) - ${subject}:\n\n${body}\n`)
     }
