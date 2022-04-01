@@ -8,6 +8,17 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### :sparkles: New Features
 - [`7c89f7ab83`](https://github.com/Requarks/changelog-action/commit/7c89f7ab832998bbd4875c40b8b90a31aac1e398) - add type headers gitmoji option
 
+## [v1.2.3] - 2022-03-31
+### Bug Fixes
+- [`7e675e563d`](https://github.com/Requarks/changelog-action/commit/7e675e563d4b3d6acbd444970ef9f8f13485b130) - use github native user handles when writeToFile is false
+
+## [v1.2.2] - 2022-02-28
+### Bug Fixes
+- [`d6cd890415`](https://github.com/Requarks/changelog-action/commit/d6cd890415380a3392c700513b75145485d6c9b8) - compiled action dist
+
+## [v1.2.1] - 2022-02-16
+### Bug Fixes
+- [`fc9dbce5d2`](https://github.com/Requarks/changelog-action/commit/fc9dbce5d2c2d9f2bb2a8160369c15017fda74e0) - fix: handle commits count over 250
 
 ## [v1.2.0] - 2022-02-12
 ### New Features
@@ -27,4 +38,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 [v1.1.0]: https://github.com/Requarks/changelog-action/compare/v1.0.0...v1.1.0
 [v1.1.1]: https://github.com/Requarks/changelog-action/compare/v1.1.0...v1.1.1
 [v1.2.0]: https://github.com/Requarks/changelog-action/compare/v1.1.1...v1.2.0
+[v1.2.1]: https://github.com/Requarks/changelog-action/compare/v1.2.0...v1.2.1
+[v1.2.2]: https://github.com/Requarks/changelog-action/compare/v1.2.1...v1.2.2
+[v1.2.3]: https://github.com/Requarks/changelog-action/compare/v1.2.2...v1.2.3
 [v1.3.0]: https://github.com/Requarks/changelog-action/compare/v1.2.3...v1.3.0
