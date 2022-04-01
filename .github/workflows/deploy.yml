@@ -48,6 +48,7 @@ jobs:
         with:
           allowUpdates: true
           draft: false
+          tag: ${{ steps.semver.outputs.next }}
           name: ${{ steps.semver.outputs.next }}
           body: ${{ steps.changelog.outputs.changes }}
           token: ${{ github.token }}
