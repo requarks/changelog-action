@@ -1,9 +1,7 @@
 name: Deploy
 
 on:
-  push:
-    tags:
-      - v[0-9]+.[0-9]+.[0-9]+
+  workflow_dispatch:
 
 jobs:
   deploy:
@@ -13,6 +11,28 @@ jobs:
       - name: Checkout Code
         uses: actions/checkout@v2
         if: ${{ !env.ACT }}
+        with:
+          fetch-depth: 0
+          
+      - name: Get Next Version
+        id: semver
+        uses: ietf-tools/semver-action@v1
+        if: ${{ !env.ACT }}
+        with:
+          token: ${{ github.token }}
+          branch: main
+          
+      - name: Create Draft Release
+        uses: ncipollo/release-action@v1
+        if: ${{ !env.ACT }}
+        with:
+          prerelease: true
+          draft: false
+          commit: ${{ github.sha }}
+          tag: ${{ steps.semver.outputs.next }}
+          name: ${{ steps.semver.outputs.next }}
+          body: '*pending*'
+          token: ${{ github.token }}
 
       - name: Update CHANGELOG
         if: ${{ !env.ACT }}
@@ -20,7 +40,7 @@ jobs:
         uses: ./
         with:
           token: ${{ github.token }}
-          tag: ${{ github.ref_name }}
+          tag: ${{ steps.semver.outputs.next }}
 
       - name: Create Release
         if: ${{ !env.ACT }}
@@ -28,7 +48,7 @@ jobs:
         with:
           allowUpdates: true
           draft: false
-          name: ${{ github.ref_name }}
+          name: ${{ steps.semver.outputs.next }}
           body: ${{ steps.changelog.outputs.changes }}
           token: ${{ github.token }}
 
