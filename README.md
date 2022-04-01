@@ -8,7 +8,7 @@ This GitHub Action automatically generates a changelog based on all the [Convent
 - Turns PR ids into links and add the PR author.
 - Prepends a shortened commit SHA ID to the commit for quick access.
 - `BREAKING CHANGE` notes are added at the bottom of the changelog version along with the related commit.
-- Automatically injects the changes into the CHANGELOG.md file or creates it if it doesn't exist yet.
+- Automatically injects the changes into the CHANGELOG.md file or creates it if it doesn't exist yet. *(optional)*
 - Will not mess up with any header or instructions you already have at the top of your CHANGELOG.md.
 - Will not add duplicate version changes if it already exists in the CHANGELOG.md file.
 - Optionally exclude types from the CHANGELOG. (default: `build,docs,other,style`)
@@ -59,6 +59,7 @@ jobs:
 * `tag`: The latest tag which triggered the job. (e.g. `${{ github.ref_name }}`) - **REQUIRED**
 * `excludeTypes`: A comma-separated list of commit types you want to exclude from the changelog (e.g. `doc,chore,perf`) - **Optional** - Default: `build,docs,other,style`
 * `writeToFile`: Should CHANGELOG.md be updated with latest changelog - **Optional** - Default: `true`
+* `useGitmojis`: Should type headers be prepended with their related gitmoji - **Optional** - Default: `true`
 
 ## Outputs
 * `changes`: Generated CHANGELOG changes for the latest tag, without the version / date header (for use in GitHub Releases).

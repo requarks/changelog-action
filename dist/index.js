@@ -26685,16 +26685,16 @@ const cc = __nccwpck_require__(4523)
 const fs = (__nccwpck_require__(7147).promises)
 
 const types = [
-  { types: ['feat', 'feature'], header: 'New Features' },
-  { types: ['fix', 'bugfix'], header: 'Bug Fixes' },
-  { types: ['perf'], header: 'Performance Improvements' },
-  { types: ['refactor'], header: 'Refactors' },
-  { types: ['test', 'tests'], header: 'Tests' },
-  { types: ['build', 'ci'], header: 'Build System' },
-  { types: ['doc', 'docs'], header: 'Documentation Changes' },
-  { types: ['style'], header: 'Code Style Changes' },
-  { types: ['chore'], header: 'Chores' },
-  { types: ['other'], header: 'Other Changes' }
+  { types: ['feat', 'feature'], header: 'New Features', icon: ':sparkles:' },
+  { types: ['fix', 'bugfix'], header: 'Bug Fixes', icon: ':bug:' },
+  { types: ['perf'], header: 'Performance Improvements', icon: ':zap:' },
+  { types: ['refactor'], header: 'Refactors', icon: ':recycle:' },
+  { types: ['test', 'tests'], header: 'Tests', icon: ':white_check_mark:' },
+  { types: ['build', 'ci'], header: 'Build System', icon: ':construction_worker:' },
+  { types: ['doc', 'docs'], header: 'Documentation Changes', icon: ':memo:' },
+  { types: ['style'], header: 'Code Style Changes', icon: ':art:' },
+  { types: ['chore'], header: 'Chores', icon: ':wrench:' },
+  { types: ['other'], header: 'Other Changes', icon: ':flying_saucer:' }
 ]
 
 async function main () {
@@ -26702,6 +26702,7 @@ async function main () {
   const tag = core.getInput('tag')
   const excludeTypes = (core.getInput('excludeTypes') || '').split(',').map(t => t.trim())
   const writeToFile = core.getBooleanInput('writeToFile')
+  const useGitmojis = core.getBooleanInput('useGitmojis')
   const gh = github.getOctokit(token)
   const owner = github.context.repo.owner
   const repo = github.context.repo.repo
@@ -26824,7 +26825,7 @@ async function main () {
     if (idx > 0) {
       changes.push('')
     }
-    changes.push(`### ${type.header}`)
+    changes.push(useGitmojis ? `### ${type.icon} ${type.header}` : `### ${type.header}`)
     for (const commit of matchingCommits) {
       const scope = commit.scope ? `**${commit.scope}**: ` : ''
       const subject = commit.subject.replace(/#[0-9]+/g, pr => {
@@ -26842,7 +26843,7 @@ async function main () {
 
   if (breakingChanges.length > 0) {
     changes.push('')
-    changes.push('### BREAKING CHANGES')
+    changes.push(useGitmojis ? '### :boom: BREAKING CHANGES' : '### BREAKING CHANGES')
     for (const breakChange of breakingChanges) {
       const body = breakChange.text.split('\n').map(ln => `  ${ln}`).join('  \n')
       const subject = breakChange.subject.replace(/#[0-9]+/g, pr => {

@@ -16,6 +16,10 @@ inputs:
     description: Should CHANGELOG.md be updated with latest changelog
     required: false
     default: 'true'
+  useGitmojis:
+    description: Prepend type headers with their corresponding gitmoji
+    required: false
+    default: 'true'
 outputs:
   changelog:
     description: Generated changelog
