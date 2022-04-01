@@ -4,6 +4,11 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [v1.3.0] - 2022-04-01
+### :sparkles: New Features
+- [`7c89f7ab83`](https://github.com/Requarks/changelog-action/commit/7c89f7ab832998bbd4875c40b8b90a31aac1e398) - add type headers gitmoji option
+
+
 ## [v1.2.0] - 2022-02-12
 ### New Features
 - [`3cf79dbbc9`](https://github.com/Requarks/changelog-action/commit/3cf79dbbc9c2343041681314f61f478e24191e4b) - add writeToFile option
@@ -22,3 +27,4 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 [v1.1.0]: https://github.com/Requarks/changelog-action/compare/v1.0.0...v1.1.0
 [v1.1.1]: https://github.com/Requarks/changelog-action/compare/v1.1.0...v1.1.1
 [v1.2.0]: https://github.com/Requarks/changelog-action/compare/v1.1.1...v1.2.0
+[v1.3.0]: https://github.com/Requarks/changelog-action/compare/v1.2.3...v1.3.0
