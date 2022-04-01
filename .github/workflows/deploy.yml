@@ -52,6 +52,18 @@ jobs:
           name: ${{ steps.semver.outputs.next }}
           body: ${{ steps.changelog.outputs.changes }}
           token: ${{ github.token }}
+          
+      - name: Create Release (Major-only)
+        if: ${{ !env.ACT }}
+        uses: ncipollo/release-action@v1
+        with:
+          allowUpdates: true
+          draft: false
+          commit: ${{ github.sha }}
+          tag: ${{ steps.semver.outputs.nextMajor }}
+          name: ${{ steps.semver.outputs.nextMajor }}
+          body: ${{ steps.changelog.outputs.changes }}
+          token: ${{ github.token }}
 
       - name: Commit CHANGELOG.md
         if: ${{ !env.ACT }}
