@@ -26697,6 +26697,38 @@ const types = [
   { types: ['other'], header: 'Other Changes', icon: ':flying_saucer:' }
 ]
 
+const rePrId = /#([0-9]+)/g
+const rePrEnding = /\(#([0-9]+)\)$/
+
+function buildSubject ({ writeToFile, subject, author, authorUrl, owner, repo }) {
+  const hasPR = rePrEnding.test(subject)
+  let final = subject
+  if (writeToFile) {
+    if (hasPR) {
+      const prMatch = subject.match(rePrEnding)
+      const msgOnly = subject.slice(0, prMatch[0].length * -1)
+      final = msgOnly.replace(rePrId, (m, prId) => {
+        return `[#${prId}](https://github.com/${owner}/${repo}/pull/${prId})`
+      })
+      final += `*(PR [#${prMatch[1]}](https://github.com/${owner}/${repo}/pull/${prMatch[1]}) by [@${author}](${authorUrl}))*`
+    } else {
+      final = subject.replace(rePrId, (m, prId) => {
+        return `[#${prId}](https://github.com/${owner}/${repo}/pull/${prId})`
+      })
+      final += ` *(commit by [@${author}](${authorUrl}))*`
+    }
+  } else {
+    if (hasPR) {
+      final = subject.replace(rePrEnding, (m, prId) => {
+        return `*(PR #${prId} by @${author})*`
+      })
+    } else {
+      final = `${subject} *(commit by @${author})*`
+    }
+  }
+  return final
+}
+
 async function main () {
   const token = core.getInput('token')
   const tag = core.getInput('tag')
@@ -26828,15 +26860,15 @@ async function main () {
     changes.push(useGitmojis ? `### ${type.icon} ${type.header}` : `### ${type.header}`)
     for (const commit of matchingCommits) {
       const scope = commit.scope ? `**${commit.scope}**: ` : ''
-      const subject = commit.subject.replace(/#[0-9]+/g, pr => {
-        const prId = pr.substring(1)
-        if (writeToFile) {
-          return `[${pr}](https://github.com/${owner}/${repo}/pull/${prId}) by [@${commit.author}](${commit.authorUrl})`
-        } else {
-          return `[${pr}](https://github.com/${owner}/${repo}/pull/${prId}) by @${commit.author}`
-        }
+      const subject = buildSubject({
+        writeToFile,
+        subject: commit.subject,
+        author: commit.author,
+        authorUrl: commit.authorUrl,
+        owner,
+        repo
       })
-      changes.push(`- [\`${commit.sha.substring(0, 10)}\`](${commit.url}) - ${scope}${subject}`)
+      changes.push(`- [\`${commit.sha.substring(0, 7)}\`](${commit.url}) - ${scope}${subject}`)
     }
     idx++
   }
@@ -26846,15 +26878,15 @@ async function main () {
     changes.push(useGitmojis ? '### :boom: BREAKING CHANGES' : '### BREAKING CHANGES')
     for (const breakChange of breakingChanges) {
       const body = breakChange.text.split('\n').map(ln => `  ${ln}`).join('  \n')
-      const subject = breakChange.subject.replace(/#[0-9]+/g, pr => {
-        const prId = pr.substring(1)
-        if (writeToFile) {
-          return `[${pr}](https://github.com/${owner}/${repo}/pull/${prId}) by [@${breakChange.author}](${breakChange.authorUrl})`
-        } else {
-          return `[${pr}](https://github.com/${owner}/${repo}/pull/${prId}) by @${breakChange.author}`
-        }
+      const subject = buildSubject({
+        writeToFile,
+        subject: breakChange.subject,
+        author: breakChange.author,
+        authorUrl: breakChange.authorUrl,
+        owner,
+        repo
       })
-      changes.push(`- due to [\`${breakChange.sha.substring(0, 10)}\`](${breakChange.url}) - ${subject}:\n\n${body}\n`)
+      changes.push(`- due to [\`${breakChange.sha.substring(0, 7)}\`](${breakChange.url}) - ${subject}:\n\n${body}\n`)
     }
   } else if (changes.length > 0) {
     changes.push('')
