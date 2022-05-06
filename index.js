@@ -211,7 +211,7 @@ async function main () {
   } else if (changes.length > 0) {
     changes.push('')
   } else {
-    return core.setWarn('Nothing to add to changelog because of excluded types.')
+    return core.warning('Nothing to add to changelog because of excluded types.')
   }
 
   core.setOutput('changes', changes.join('\n'))
