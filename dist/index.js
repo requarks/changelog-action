@@ -26732,6 +26732,8 @@ function buildSubject ({ writeToFile, subject, author, authorUrl, owner, repo })
 async function main () {
   const token = core.getInput('token')
   const tag = core.getInput('tag')
+  const fromTag = core.getInput('fromTag')
+  const toTag = core.getInput('toTag')
   const excludeTypes = (core.getInput('excludeTypes') || '').split(',').map(t => t.trim())
   const writeToFile = core.getBooleanInput('writeToFile')
   const useGitmojis = core.getBooleanInput('useGitmojis')
@@ -26740,38 +26742,54 @@ async function main () {
   const repo = github.context.repo.repo
   const currentISODate = (new Date()).toISOString().substring(0, 10)
 
-  // GET LATEST + PREVIOUS TAGS
+  let latestTag = null
+  let previousTag = null
 
-  const tagsRaw = await gh.graphql(`
-    query lastTags ($owner: String!, $repo: String!) {
-      repository (owner: $owner, name: $repo) {
-        refs(first: 2, refPrefix: "refs/tags/", orderBy: { field: TAG_COMMIT_DATE, direction: DESC }) {
-          nodes {
-            name
-            target {
-              oid
+  if (tag) {
+    
+    // GET LATEST + PREVIOUS TAGS
+
+    core.info(`Using input tag: ${tag}`)
+
+    const tagsRaw = await gh.graphql(`
+      query lastTags ($owner: String!, $repo: String!) {
+        repository (owner: $owner, name: $repo) {
+          refs(first: 2, refPrefix: "refs/tags/", orderBy: { field: TAG_COMMIT_DATE, direction: DESC }) {
+            nodes {
+              name
+              target {
+                oid
+              }
             }
           }
         }
       }
+    `, {
+      owner,
+      repo
+    })
+
+    latestTag = _.get(tagsRaw, 'repository.refs.nodes[0]')
+    previousTag = _.get(tagsRaw, 'repository.refs.nodes[1]')
+  
+    if (!latestTag) {
+      return core.setFailed('Couldn\'t find the latest tag. Make sure you have an existing tag already before creating a new one.')
     }
-  `, {
-    owner,
-    repo
-  })
+    if (!previousTag) {
+      return core.setFailed('Couldn\'t find a previous tag. Make sure you have at least 2 tags already (current tag + previous initial tag).')
+    }
 
-  const latestTag = _.get(tagsRaw, 'repository.refs.nodes[0]')
-  const previousTag = _.get(tagsRaw, 'repository.refs.nodes[1]')
+    if (latestTag.name !== tag) {
+      return core.setFailed(`Provided tag doesn\'t match latest tag ${tag}.`)
+    }
+  } else if (fromTag && toTag) {
 
-  if (!latestTag) {
-    return core.setFailed('Couldn\'t find the latest tag. Make sure you have an existing tag already before creating a new one.')
-  }
-  if (!previousTag) {
-    return core.setFailed('Couldn\'t find a previous tag. Make sure you have at least 2 tags already (current tag + previous initial tag).')
-  }
+    // GET LATEST + PREVIOUS TAGS FROM INPUT
 
-  if (latestTag.name !== tag) {
-    return core.setFailed('Provided tag doesn\'t match latest tag.')
+    latestTag = { name: fromTag };
+    previousTag = { name: toTag };
+  } else {
+    return core.setFailed(`Input tag or fromTag and toTag are required.`) 
   }
 
   core.info(`Using latest tag: ${latestTag.name}`)
