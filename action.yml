@@ -1,5 +1,5 @@
 name: 'Changelog from Conventional Commits'
-description: 'Generate and update the CHANGELOG from conventional commits since last tag'
+description: 'Generate and update the CHANGELOG from conventional commits since last tag or given tag range'
 author: Nicolas Giard
 inputs:
   token:
@@ -7,7 +7,13 @@ inputs:
     required: true
   tag:
     description: The latest tag (which triggered this job)
-    required: true
+    required: false
+  fromTag:
+    description: The tag from which the changelog is to be determined
+    required: false
+  toTag:
+    description: The tag up to which the changelog is to be determined
+    required: false
   excludeTypes:
     description: Types to exclude from the Changelog
     required: false
