@@ -81,7 +81,7 @@ jobs:
         run: |
           name=$(git --no-pager tag --sort=creatordate --merged ${{ github.ref_name }} | tail -2 | head -1)
           echo "previousTag: $name"
-          echo "::set-output name=name::$name"
+          echo "previousTag=$name" >> $GITHUB_ENV
 
       - name: Update CHANGELOG
         id: changelog
@@ -89,7 +89,7 @@ jobs:
         with:
           token: ${{ github.token }}
           fromTag: ${{ github.ref_name }}
-          toTag: ${{ steps.previousTag.outputs.name }}
+          toTag: ${{ env.previousTag }}
 
       - name: Create Release
         uses: ncipollo/release-action@v1
