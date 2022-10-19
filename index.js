@@ -256,7 +256,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   const lines = chglog.replace(/\r/g, '').split('\n')
   let firstVersionLine = _.findIndex(lines, l => l.startsWith('## '))
 
-  if (firstVersionLine >= 0 && lines[firstVersionLine].startsWith(`## [${tag}`)) {
+  if (firstVersionLine >= 0 && lines[firstVersionLine].startsWith(`## [${latestTag.name}`)) {
     return core.notice('This version already exists in the CHANGELOG! No change will be made to the CHANGELOG.')
   }
 
@@ -268,11 +268,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   if (firstVersionLine > 0) {
     output += lines.slice(0, firstVersionLine).join('\n') + '\n'
   }
-  output += `## [${tag}] - ${currentISODate}\n${changes.join('\n')}\n`
+  output += `## [${latestTag.name}] - ${currentISODate}\n${changes.join('\n')}\n`
   if (firstVersionLine < lines.length) {
     output += '\n' + lines.slice(firstVersionLine).join('\n')
   }
-  output += `\n[${tag}]: https://github.com/${owner}/${repo}/compare/${previousTag.name}...${tag}`
+  output += `\n[${latestTag.name}]: https://github.com/${owner}/${repo}/compare/${previousTag.name}...${latestTag.name}`
 
   // WRITE CHANGELOG TO FILE
 
