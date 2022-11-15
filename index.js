@@ -65,8 +65,10 @@ async function main () {
   let latestTag = null
   let previousTag = null
 
-  if (tag) {
-    
+  if (tag && (fromTag || toTag)) {
+    return core.setFailed(`Must provide EITHER input tag OR (fromTag and toTag), not both!`)
+  } else if (tag) {
+
     // GET LATEST + PREVIOUS TAGS
 
     core.info(`Using input tag: ${tag}`)
@@ -91,7 +93,7 @@ async function main () {
 
     latestTag = _.get(tagsRaw, 'repository.refs.nodes[0]')
     previousTag = _.get(tagsRaw, 'repository.refs.nodes[1]')
-  
+
     if (!latestTag) {
       return core.setFailed('Couldn\'t find the latest tag. Make sure you have an existing tag already before creating a new one.')
     }
@@ -102,18 +104,20 @@ async function main () {
     if (latestTag.name !== tag) {
       return core.setFailed(`Provided tag doesn\'t match latest tag ${tag}.`)
     }
+
+    core.info(`Using latest tag: ${latestTag.name}`)
+    core.info(`Using previous tag: ${previousTag.name}`)
   } else if (fromTag && toTag) {
 
-    // GET LATEST + PREVIOUS TAGS FROM INPUT
+    // GET FROM + TO TAGS FROM INPUTS
 
-    latestTag = { name: fromTag };
-    previousTag = { name: toTag };
+    latestTag = { name: fromTag }
+    previousTag = { name: toTag }
+
+    core.info(`Using tag range: ${fromTag} to ${toTag}`)
   } else {
-    return core.setFailed(`Input tag or fromTag and toTag are required.`) 
+    return core.setFailed(`Must provide either input tag OR (fromTag and toTag). None were provided!`)
   }
-
-  core.info(`Using latest tag: ${latestTag.name}`)
-  core.info(`Using previous tag: ${previousTag.name}`)
 
   // GET COMMITS
 
@@ -181,9 +185,37 @@ async function main () {
 
   // BUILD CHANGELOG
 
-  const changes = []
-
+  const changesFile = []
+  const changesVar = []
   let idx = 0
+
+  if (breakingChanges.length > 0) {
+    changesFile.push(useGitmojis ? '### :boom: BREAKING CHANGES' : '### BREAKING CHANGES')
+    changesVar.push(useGitmojis ? '### :boom: BREAKING CHANGES' : '### BREAKING CHANGES')
+    for (const breakChange of breakingChanges) {
+      const body = breakChange.text.split('\n').map(ln => `  ${ln}`).join('  \n')
+      const subjectFile = buildSubject({
+        writeToFile: true,
+        subject: breakChange.subject,
+        author: breakChange.author,
+        authorUrl: breakChange.authorUrl,
+        owner,
+        repo
+      })
+      const subjectVar = buildSubject({
+        writeToFile: false,
+        subject: breakChange.subject,
+        author: breakChange.author,
+        authorUrl: breakChange.authorUrl,
+        owner,
+        repo
+      })
+      changesFile.push(`- due to [\`${breakChange.sha.substring(0, 7)}\`](${breakChange.url}) - ${subjectFile}:\n\n${body}\n`)
+      changesVar.push(`- due to [\`${breakChange.sha.substring(0, 7)}\`](${breakChange.url}) - ${subjectVar}:\n\n${body}\n`)
+    }
+    idx++
+  }
+
   for (const type of types) {
     if (_.intersection(type.types, excludeTypes).length > 0) {
       continue
@@ -193,46 +225,43 @@ async function main () {
       continue
     }
     if (idx > 0) {
-      changes.push('')
+      changesFile.push('')
+      changesVar.push('')
     }
-    changes.push(useGitmojis ? `### ${type.icon} ${type.header}` : `### ${type.header}`)
+    changesFile.push(useGitmojis ? `### ${type.icon} ${type.header}` : `### ${type.header}`)
+    changesVar.push(useGitmojis ? `### ${type.icon} ${type.header}` : `### ${type.header}`)
     for (const commit of matchingCommits) {
       const scope = commit.scope ? `**${commit.scope}**: ` : ''
-      const subject = buildSubject({
-        writeToFile,
+      const subjectFile = buildSubject({
+        writeToFile: true,
         subject: commit.subject,
         author: commit.author,
         authorUrl: commit.authorUrl,
         owner,
         repo
       })
-      changes.push(`- [\`${commit.sha.substring(0, 7)}\`](${commit.url}) - ${scope}${subject}`)
+      const subjectVar = buildSubject({
+        writeToFile: false,
+        subject: commit.subject,
+        author: commit.author,
+        authorUrl: commit.authorUrl,
+        owner,
+        repo
+      })
+      changesFile.push(`- [\`${commit.sha.substring(0, 7)}\`](${commit.url}) - ${scope}${subjectFile}`)
+      changesVar.push(`- [\`${commit.sha.substring(0, 7)}\`](${commit.url}) - ${scope}${subjectVar}`)
     }
     idx++
   }
 
-  if (breakingChanges.length > 0) {
-    changes.push('')
-    changes.push(useGitmojis ? '### :boom: BREAKING CHANGES' : '### BREAKING CHANGES')
-    for (const breakChange of breakingChanges) {
-      const body = breakChange.text.split('\n').map(ln => `  ${ln}`).join('  \n')
-      const subject = buildSubject({
-        writeToFile,
-        subject: breakChange.subject,
-        author: breakChange.author,
-        authorUrl: breakChange.authorUrl,
-        owner,
-        repo
-      })
-      changes.push(`- due to [\`${breakChange.sha.substring(0, 7)}\`](${breakChange.url}) - ${subject}:\n\n${body}\n`)
-    }
-  } else if (changes.length > 0) {
-    changes.push('')
+  if (changesFile.length > 0) {
+    changesFile.push('')
+    changesVar.push('')
   } else {
     return core.warning('Nothing to add to changelog because of excluded types.')
   }
 
-  core.setOutput('changes', changes.join('\n'))
+  core.setOutput('changes', changesVar.join('\n'))
 
   if (!writeToFile) { return }
 
@@ -268,7 +297,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   if (firstVersionLine > 0) {
     output += lines.slice(0, firstVersionLine).join('\n') + '\n'
   }
-  output += `## [${latestTag.name}] - ${currentISODate}\n${changes.join('\n')}\n`
+  output += `## [${latestTag.name}] - ${currentISODate}\n${changesFile.join('\n')}\n`
   if (firstVersionLine < lines.length) {
     output += '\n' + lines.slice(firstVersionLine).join('\n')
   }

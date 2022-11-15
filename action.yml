@@ -1,18 +1,18 @@
 name: 'Changelog from Conventional Commits'
-description: 'Generate and update the CHANGELOG from conventional commits since last tag or given tag range'
+description: 'Generate and update the CHANGELOG from conventional commits since latest tag or from a given tag range'
 author: Nicolas Giard
 inputs:
   token:
     description: GitHub Token
     required: true
   tag:
-    description: The latest tag (which triggered this job)
+    description: The latest tag (which triggered this job) (only if using latest tag)
     required: false
   fromTag:
-    description: The tag from which the changelog is to be determined
+    description: The tag from which the changelog is to be determined (only if using tag range)
     required: false
   toTag:
-    description: The tag up to which the changelog is to be determined
+    description: The tag up to which the changelog is to be determined (only if using tag range)
     required: false
   excludeTypes:
     description: Types to exclude from the Changelog
@@ -30,7 +30,7 @@ outputs:
   changelog:
     description: Generated changelog
 runs:
-  using: 'node12'
+  using: 'node16'
   main: 'dist/index.js'
 branding:
   icon: wind
