@@ -4,6 +4,14 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [v1.4.0] - 2022-11-15
+### :sparkles: New Features
+- [`a823d8a`](https://github.com/requarks/changelog-action/commit/a823d8ad176c08b3ceffaab28035dcc37be7f43e) - create changelog from 2 tags *(PR [#6](https://github.com/requarks/changelog-action/pull/6) by [@sitepark-veltrup](https://github.com/sitepark-veltrup))*
+
+### :bug: Bug Fixes
+- [`af145b6`](https://github.com/requarks/changelog-action/commit/af145b6f6d1fa8b857e497c91b3120cec8c1ef36) - move breaking changes section on top + update dependencies *(commit by [@NGPixel](https://github.com/NGPixel))*
+
+
 ## [v1.3.2] - 2022-05-06
 ### :bug: Bug Fixes
 - [`66a4bf2`](https://github.com/requarks/changelog-action/commit/66a4bf2663a93f4271c97e78ec54859e0b40ff95) - empty changelog warning call *(commit by [@NGPixel](https://github.com/NGPixel))*
@@ -55,3 +63,4 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 [v1.3.1]: https://github.com/requarks/changelog-action/compare/v1.3.0...v1.3.1
 [v1.3.2]: https://github.com/requarks/changelog-action/compare/v1.3.1...v1.3.2
+[v1.4.0]: https://github.com/requarks/changelog-action/compare/v1.3.2...v1.4.0
