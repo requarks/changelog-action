@@ -28134,6 +28134,7 @@ async function main () {
   const excludeTypes = (core.getInput('excludeTypes') || '').split(',').map(t => t.trim())
   const writeToFile = core.getBooleanInput('writeToFile')
   const useGitmojis = core.getBooleanInput('useGitmojis')
+  const includeInvalidCommits = core.getBooleanInput('includeInvalidCommits')
   const gh = github.getOctokit(token)
   const owner = github.context.repo.owner
   const repo = github.context.repo.repo
@@ -28252,7 +28253,18 @@ async function main () {
       }
       core.info(`[OK] Commit ${commit.sha} of type ${cAst.type} - ${cAst.subject}`)
     } catch (err) {
-      core.info(`[INVALID] Skipping commit ${commit.sha} as it doesn't follow conventional commit format.`)
+      if (includeInvalidCommits) {
+        commitsParsed.push({
+          type: 'other',
+          subject: commit.commit.message,
+          sha: commit.sha,
+          url: commit.html_url,
+          author: commit.author.login,
+          authorUrl: commit.author.html_url
+        })
+      } else {
+        core.info(`[INVALID] Skipping commit ${commit.sha} as it doesn't follow conventional commit format.`)
+      }
     }
   }
 

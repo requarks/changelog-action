@@ -110,6 +110,7 @@ jobs:
 * `excludeTypes`: A comma-separated list of commit types you want to exclude from the changelog (e.g. `doc,chore,perf`) - **Optional** - Default: `build,docs,other,style`
 * `writeToFile`: Should CHANGELOG.md be updated with latest changelog - **Optional** - Default: `true`
 * `useGitmojis`: Should type headers be prepended with their related gitmoji - **Optional** - Default: `true`
+* `includeInvalidCommits`: Whether to include commits that don't respect the Conventional Commits format - **Optional** - Default: `false`
 
 ## Outputs
 * `changes`: Generated CHANGELOG changes for the latest tag, without the version / date header (for use in GitHub Releases).
