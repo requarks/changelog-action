@@ -105,8 +105,8 @@ jobs:
 ## Inputs
 * `token`: Your GitHub token (e.g. `${{ github.token }}`) - **REQUIRED**
 * `tag`: The latest tag which triggered the job. (e.g. `${{ github.ref_name }}`) - **REQUIRED (unless using `fromTag` and `toTag`)**
-* `fromTag`: The tag from which the changelog is to be determined - **REQUIRED (unless using `tag`)**
-* `toTag`: The tag up to which the changelog is to be determined - **REQUIRED (unless using `tag`)**
+* `fromTag`: The tag from which the changelog is to be determined (latest) - **REQUIRED (unless using `tag`)**
+* `toTag`: The tag up to which the changelog is to be determined (oldest) - **REQUIRED (unless using `tag`)**
 * `excludeTypes`: A comma-separated list of commit types you want to exclude from the changelog (e.g. `doc,chore,perf`) - **Optional** - Default: `build,docs,other,style`
 * `writeToFile`: Should CHANGELOG.md be updated with latest changelog - **Optional** - Default: `true`
 * `useGitmojis`: Should type headers be prepended with their related gitmoji - **Optional** - Default: `true`
