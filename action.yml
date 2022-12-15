@@ -22,6 +22,10 @@ inputs:
     description: Should CHANGELOG.md be updated with latest changelog
     required: false
     default: 'true'
+  includeRefIssues:
+    description: Should the changelog include the issues referenced for each PR.
+    required: false
+    default: 'true'
   useGitmojis:
     description: Prepend type headers with their corresponding gitmoji
     required: false

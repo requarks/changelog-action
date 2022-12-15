@@ -27982,6 +27982,14 @@ module.exports = require("stream");
 
 /***/ }),
 
+/***/ 8670:
+/***/ ((module) => {
+
+"use strict";
+module.exports = require("timers/promises");
+
+/***/ }),
+
 /***/ 4404:
 /***/ ((module) => {
 
@@ -28080,10 +28088,11 @@ const core = __nccwpck_require__(2186)
 const _ = __nccwpck_require__(250)
 const cc = __nccwpck_require__(4523)
 const fs = (__nccwpck_require__(7147).promises)
+const { setTimeout } = __nccwpck_require__(8670)
 
 const types = [
   { types: ['feat', 'feature'], header: 'New Features', icon: ':sparkles:' },
-  { types: ['fix', 'bugfix'], header: 'Bug Fixes', icon: ':bug:' },
+  { types: ['fix', 'bugfix'], header: 'Bug Fixes', icon: ':bug:', relIssuePrefix: 'fixes' },
   { types: ['perf'], header: 'Performance Improvements', icon: ':zap:' },
   { types: ['refactor'], header: 'Refactors', icon: ':recycle:' },
   { types: ['test', 'tests'], header: 'Tests', icon: ':white_check_mark:' },
@@ -28099,31 +28108,37 @@ const rePrEnding = /\(#([0-9]+)\)$/
 
 function buildSubject ({ writeToFile, subject, author, authorUrl, owner, repo }) {
   const hasPR = rePrEnding.test(subject)
-  let final = subject
+  const prs = []
+  let output = subject
   if (writeToFile) {
     if (hasPR) {
       const prMatch = subject.match(rePrEnding)
       const msgOnly = subject.slice(0, prMatch[0].length * -1)
-      final = msgOnly.replace(rePrId, (m, prId) => {
+      output = msgOnly.replace(rePrId, (m, prId) => {
+        prs.push(prId)
         return `[#${prId}](https://github.com/${owner}/${repo}/pull/${prId})`
       })
-      final += `*(PR [#${prMatch[1]}](https://github.com/${owner}/${repo}/pull/${prMatch[1]}) by [@${author}](${authorUrl}))*`
+      output += `*(PR [#${prMatch[1]}](https://github.com/${owner}/${repo}/pull/${prMatch[1]}) by [@${author}](${authorUrl}))*`
     } else {
-      final = subject.replace(rePrId, (m, prId) => {
+      output = subject.replace(rePrId, (m, prId) => {
         return `[#${prId}](https://github.com/${owner}/${repo}/pull/${prId})`
       })
-      final += ` *(commit by [@${author}](${authorUrl}))*`
+      output += ` *(commit by [@${author}](${authorUrl}))*`
     }
   } else {
     if (hasPR) {
-      final = subject.replace(rePrEnding, (m, prId) => {
+      output = subject.replace(rePrEnding, (m, prId) => {
+        prs.push(prId)
         return `*(PR #${prId} by @${author})*`
       })
     } else {
-      final = `${subject} *(commit by @${author})*`
+      output = `${subject} *(commit by @${author})*`
     }
   }
-  return final
+  return {
+    output,
+    prs
+  }
 }
 
 async function main () {
@@ -28133,6 +28148,7 @@ async function main () {
   const toTag = core.getInput('toTag')
   const excludeTypes = (core.getInput('excludeTypes') || '').split(',').map(t => t.trim())
   const writeToFile = core.getBooleanInput('writeToFile')
+  const includeRefIssues = core.getBooleanInput('includeRefIssues')
   const useGitmojis = core.getBooleanInput('useGitmojis')
   const includeInvalidCommits = core.getBooleanInput('includeInvalidCommits')
   const gh = github.getOctokit(token)
@@ -28262,6 +28278,7 @@ async function main () {
           author: commit.author.login,
           authorUrl: commit.author.html_url
         })
+        core.info(`[OK] Commit ${commit.sha} with invalid type, falling back to other - ${commit.commit.message}`)
       } else {
         core.info(`[INVALID] Skipping commit ${commit.sha} as it doesn't follow conventional commit format.`)
       }
@@ -28299,8 +28316,8 @@ async function main () {
         owner,
         repo
       })
-      changesFile.push(`- due to [\`${breakChange.sha.substring(0, 7)}\`](${breakChange.url}) - ${subjectFile}:\n\n${body}\n`)
-      changesVar.push(`- due to [\`${breakChange.sha.substring(0, 7)}\`](${breakChange.url}) - ${subjectVar}:\n\n${body}\n`)
+      changesFile.push(`- due to [\`${breakChange.sha.substring(0, 7)}\`](${breakChange.url}) - ${subjectFile.output}:\n\n${body}\n`)
+      changesVar.push(`- due to [\`${breakChange.sha.substring(0, 7)}\`](${breakChange.url}) - ${subjectVar.output}:\n\n${body}\n`)
     }
     idx++
   }
@@ -28319,6 +28336,9 @@ async function main () {
     }
     changesFile.push(useGitmojis ? `### ${type.icon} ${type.header}` : `### ${type.header}`)
     changesVar.push(useGitmojis ? `### ${type.icon} ${type.header}` : `### ${type.header}`)
+
+    const relIssuePrefix = type.relIssuePrefix || 'addresses'
+
     for (const commit of matchingCommits) {
       const scope = commit.scope ? `**${commit.scope}**: ` : ''
       const subjectFile = buildSubject({
@@ -28337,8 +28357,41 @@ async function main () {
         owner,
         repo
       })
-      changesFile.push(`- [\`${commit.sha.substring(0, 7)}\`](${commit.url}) - ${scope}${subjectFile}`)
-      changesVar.push(`- [\`${commit.sha.substring(0, 7)}\`](${commit.url}) - ${scope}${subjectVar}`)
+      changesFile.push(`- [\`${commit.sha.substring(0, 7)}\`](${commit.url}) - ${scope}${subjectFile.output}`)
+      changesVar.push(`- [\`${commit.sha.substring(0, 7)}\`](${commit.url}) - ${scope}${subjectVar.output}`)
+
+      if (includeRefIssues && subjectVar.prs.length > 0) {
+        for (const prId of subjectVar.prs) {
+          core.info(`Querying related issues for PR ${prId}...`)
+          await setTimeout(500) // Make sure we don't go over GitHub API rate limits
+          const issuesRaw = await gh.graphql(`
+            query relIssues ($owner: String!, $repo: String!, $prId: Int!) {
+              repository (owner: $owner, name: $repo) {
+                pullRequest(number: $prId) {
+                  closingIssuesReferences(first: 50) {
+                    nodes {
+                      number
+                      author {
+                        login
+                        url
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          `, {
+            owner,
+            repo,
+            prId: parseInt(prId)
+          })
+          const relIssues = _.get(issuesRaw, 'repository.pullRequest.closingIssuesReferences.nodes')
+          for (const relIssue of relIssues) {
+            changesFile.push(`  - :arrow_lower_right: *${relIssuePrefix} issue [#${relIssue.number}](${relIssue.url}) opened by [@${relIssue.author.login}](${relIssue.author.url})*`)
+            changesVar.push(`  - :arrow_lower_right: *${relIssuePrefix} issue #${relIssue.number} opened by @${relIssue.author.login}*`)
+          }
+        }
+      }
     }
     idx++
   }

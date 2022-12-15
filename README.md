@@ -109,6 +109,7 @@ jobs:
 * `toTag`: The tag up to which the changelog is to be determined (oldest) - **REQUIRED (unless using `tag`)**
 * `excludeTypes`: A comma-separated list of commit types you want to exclude from the changelog (e.g. `doc,chore,perf`) - **Optional** - Default: `build,docs,other,style`
 * `writeToFile`: Should CHANGELOG.md be updated with latest changelog - **Optional** - Default: `true`
+* `includeRefIssues`: Should the changelog include the issues referenced for each PR. - **Optional** - Default: `true`
 * `useGitmojis`: Should type headers be prepended with their related gitmoji - **Optional** - Default: `true`
 * `includeInvalidCommits`: Whether to include commits that don't respect the Conventional Commits format - **Optional** - Default: `false`
 
