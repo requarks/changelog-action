@@ -34,9 +34,15 @@ inputs:
     description: Whether to include commits that don't respect the Conventional Commits format
     required: false
     default: 'false'
+  formatForSlack:
+    description: Whether to format for slack which has it's own kind of markdown formatting
+    required: false
+    default: 'false'
 outputs:
-  changelog:
+  changes:
     description: Generated changelog
+  changesForSlack:
+    description: Generated changelog formatted for slack (only when formatForSlack is set to true)
 runs:
   using: 'node16'
   main: 'dist/index.js'
