@@ -26,6 +26,10 @@ inputs:
     description: Should the changelog include the issues referenced for each PR.
     required: false
     default: 'true'
+  includeBreaking:
+    description: Should the changelog include the breaking changes.
+    required: false
+    default: 'true'
   useGitmojis:
     description: Prepend type headers with their corresponding gitmoji
     required: false

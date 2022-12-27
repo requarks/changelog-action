@@ -75,6 +75,7 @@ async function main () {
   const excludeTypes = (core.getInput('excludeTypes') || '').split(',').map(t => t.trim())
   const writeToFile = core.getBooleanInput('writeToFile')
   const includeRefIssues = core.getBooleanInput('includeRefIssues')
+  const includeBreaking = core.getBooleanInput('includeBreaking')
   const useGitmojis = core.getBooleanInput('useGitmojis')
   const includeInvalidCommits = core.getBooleanInput('includeInvalidCommits')
   const formatForSlack = core.getBooleanInput('formatForSlack')
@@ -183,7 +184,7 @@ async function main () {
         authorUrl: commit.author.html_url
       })
       for (const note of cAst.notes) {
-        if (note.title === 'BREAKING CHANGE') {
+        if (note.title === 'BREAKING CHANGE' && includeBreaking) {
           breakingChanges.push({
             sha: commit.sha,
             url: commit.html_url,
