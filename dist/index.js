@@ -28100,6 +28100,7 @@ const types = [
   { types: ['doc', 'docs'], header: 'Documentation Changes', icon: ':memo:' },
   { types: ['style'], header: 'Code Style Changes', icon: ':art:' },
   { types: ['chore'], header: 'Chores', icon: ':wrench:' },
+  { types: ['oafa'], header: 'Once And For All', icon: ':one-and-for-all:' },
   { types: ['other'], header: 'Other Changes', icon: ':flying_saucer:' }
 ]
 
