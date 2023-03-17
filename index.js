@@ -26,6 +26,7 @@ function buildSubject ({ writeToFile, subject, author, authorUrl, owner, repo })
   const prs = []
   let output = subject
   if (writeToFile) {
+    const authorLine = author ? ` by [@${author}](${authorUrl})` : ''
     if (hasPR) {
       const prMatch = subject.match(rePrEnding)
       const msgOnly = subject.slice(0, prMatch[0].length * -1)
@@ -33,21 +34,23 @@ function buildSubject ({ writeToFile, subject, author, authorUrl, owner, repo })
         prs.push(prId)
         return `[#${prId}](https://github.com/${owner}/${repo}/pull/${prId})`
       })
-      output += `*(PR [#${prMatch[1]}](https://github.com/${owner}/${repo}/pull/${prMatch[1]}) by [@${author}](${authorUrl}))*`
+      output += `*(PR [#${prMatch[1]}](https://github.com/${owner}/${repo}/pull/${prMatch[1]})${authorLine})*`
     } else {
       output = subject.replace(rePrId, (m, prId) => {
         return `[#${prId}](https://github.com/${owner}/${repo}/pull/${prId})`
       })
-      output += ` *(commit by [@${author}](${authorUrl}))*`
+      if (author) {
+        output += ` *(commit by [@${author}](${authorUrl}))*`
+      }
     }
   } else {
     if (hasPR) {
       output = subject.replace(rePrEnding, (m, prId) => {
         prs.push(prId)
-        return `*(PR #${prId} by @${author})*`
+        return author ? `*(PR #${prId} by @${author})*` : `*(PR #${prId})*`
       })
     } else {
-      output = `${subject} *(commit by @${author})*`
+      output = author ? `${subject} *(commit by @${author})*` : subject
     }
   }
   return {
@@ -168,8 +171,8 @@ async function main () {
         type: cAst.type.toLowerCase(),
         sha: commit.sha,
         url: commit.html_url,
-        author: commit.author.login,
-        authorUrl: commit.author.html_url
+        author: _.get(commit, 'author.login'),
+        authorUrl: _.get(commit, 'author.html_url')
       })
       for (const note of cAst.notes) {
         if (note.title === 'BREAKING CHANGE') {
@@ -177,8 +180,8 @@ async function main () {
             sha: commit.sha,
             url: commit.html_url,
             subject: cAst.subject,
-            author: commit.author.login,
-            authorUrl: commit.author.html_url,
+            author: _.get(commit, 'author.login'),
+            authorUrl: _.get(commit, 'author.html_url'),
             text: note.text
           })
         }
@@ -191,8 +194,8 @@ async function main () {
           subject: commit.commit.message,
           sha: commit.sha,
           url: commit.html_url,
-          author: commit.author.login,
-          authorUrl: commit.author.html_url
+          author: _.get(commit, 'author.login'),
+          authorUrl: _.get(commit, 'author.html_url')
         })
         core.info(`[OK] Commit ${commit.sha} with invalid type, falling back to other - ${commit.commit.message}`)
       } else {
@@ -303,8 +306,14 @@ async function main () {
           })
           const relIssues = _.get(issuesRaw, 'repository.pullRequest.closingIssuesReferences.nodes')
           for (const relIssue of relIssues) {
-            changesFile.push(`  - :arrow_lower_right: *${relIssuePrefix} issue [#${relIssue.number}](${relIssue.url}) opened by [@${relIssue.author.login}](${relIssue.author.url})*`)
-            changesVar.push(`  - :arrow_lower_right: *${relIssuePrefix} issue #${relIssue.number} opened by @${relIssue.author.login}*`)
+            const authorLogin = _.get(relIssue, 'author.login')
+            if (authorLogin) {
+              changesFile.push(`  - :arrow_lower_right: *${relIssuePrefix} issue [#${relIssue.number}](${relIssue.url}) opened by [@${authorLogin}](${relIssue.author.url})*`)
+              changesVar.push(`  - :arrow_lower_right: *${relIssuePrefix} issue #${relIssue.number} opened by @${authorLogin}*`)
+            } else {
+              changesFile.push(`  - :arrow_lower_right: *${relIssuePrefix} issue [#${relIssue.number}](${relIssue.url})*`)
+              changesVar.push(`  - :arrow_lower_right: *${relIssuePrefix} issue #${relIssue.number}*`)
+            }
           }
         }
       }
