@@ -4,6 +4,15 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [v1.7.0] - 2023-03-17
+### :sparkles: New Features
+- [`01c1b24`](https://github.com/requarks/changelog-action/commit/01c1b24b234e079288271046481d408baad64656) - add reverseOrder option to list commits from newer to older *(commit by [@NGPixel](https://github.com/NGPixel))*
+
+### :bug: Bug Fixes
+- [`94af0c3`](https://github.com/requarks/changelog-action/commit/94af0c3dfeae6180da49e87ec06a24880614c081) - handle types in uppercase *(commit by [@NGPixel](https://github.com/NGPixel))*
+- [`d47b63a`](https://github.com/requarks/changelog-action/commit/d47b63a7f846dd6c4aa803c597a12d413121fd59) - handle commits with no author info *(commit by [@NGPixel](https://github.com/NGPixel))*
+
+
 ## [v1.6.0] - 2022-12-15
 ### :sparkles: New Features
 - [`f64e045`](https://github.com/requarks/changelog-action/commit/f64e045b5e7d73289888b92aa7cf6b9c8443f497) - include referenced issues from PRs *(commit by [@NGPixel](https://github.com/NGPixel))*
@@ -76,3 +85,4 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 [v1.4.0]: https://github.com/requarks/changelog-action/compare/v1.3.2...v1.4.0
 [v1.5.0]: https://github.com/requarks/changelog-action/compare/v1.4.0...v1.5.0
 [v1.6.0]: https://github.com/requarks/changelog-action/compare/v1.5.0...v1.6.0
+[v1.7.0]: https://github.com/requarks/changelog-action/compare/v1.6.0...v1.7.0
