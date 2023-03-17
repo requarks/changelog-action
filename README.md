@@ -2,6 +2,14 @@
 
 This GitHub Action automatically generates a changelog based on all the [Conventional Commits](https://www.conventionalcommits.org) between the latest tag and the previous tag, or beween 2 specific tags.
 
+- [Features](#features)
+- [Example Workflows](#example-workflows)
+  - [Using the latest tag](#using-the-latest-tag)
+  - [Using a specific tag range](#using-a-specific-tag-range)
+- [Inputs](#inputs)
+- [Outputs](#outputs)
+- [Important Info](#warning-important-warning)
+
 ## Features
 
 - Generates the CHANGELOG changes in Markdown format
@@ -14,7 +22,9 @@ This GitHub Action automatically generates a changelog based on all the [Convent
 - Will not add duplicate version changes if it already exists in the CHANGELOG.md file.
 - Optionally exclude types from the CHANGELOG. (default: `build,docs,other,style`)
 
-## Example workflow using the latest tag
+## Example Workflows
+
+### Using the latest tag
 
 ``` yaml
 name: Deploy
@@ -30,7 +40,7 @@ jobs:
 
     steps:
       - name: Checkout Code
-        uses: actions/checkout@v2
+        uses: actions/checkout@v3
 
       - name: Update CHANGELOG
         id: changelog
@@ -56,7 +66,7 @@ jobs:
           file_pattern: CHANGELOG.md
 ```
 
-## Example workflow with a specific tag range
+### Using a specific tag range
 
 ``` yaml
 name: Deploy
@@ -72,7 +82,7 @@ jobs:
 
     steps:
       - name: Checkout Code
-        uses: actions/checkout@v2
+        uses: actions/checkout@v3
         with:
           fetch-depth: 0
 
@@ -107,9 +117,9 @@ jobs:
 | Field | Description | Required | Default |
 |-------|-------------|:--------:|---------|
 | `token` | Your GitHub token (e.g. `${{ github.token }}`) | :white_check_mark: | |
-| `tag` | The latest tag which triggered the job. (e.g. `${{ github.ref_name }}`) | :white_check_mark: *(unless using `fromTag` and `toTag`)* | |
-| `fromTag` | The tag from which the changelog is to be determined (latest) | :white_check_mark: *(unless using `tag`)* | |
-| `toTag` | The tag up to which the changelog is to be determined (oldest) | :white_check_mark: *(unless using `tag`)* | |
+| `tag` | The latest tag which triggered the job. (e.g. `${{ github.ref_name }}`) | :white_check_mark: <br> *(unless using `fromTag` and `toTag`)* | |
+| `fromTag` | The tag from which the changelog is to be determined (latest) | :white_check_mark: <br> *(unless using `tag`)* | |
+| `toTag` | The tag up to which the changelog is to be determined (oldest) | :white_check_mark: <br> *(unless using `tag`)* | |
 | `excludeTypes` | A comma-separated list of commit types you want to exclude from the changelog (e.g. `doc,chore,perf`) | :x: | `build,docs,other,style` |
 | `writeToFile` | Should CHANGELOG.md be updated with latest changelog | :x: | `true` |
 | `includeRefIssues` | Should the changelog include the issues referenced for each PR. | :x: | `true` |
