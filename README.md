@@ -103,19 +103,26 @@ jobs:
 ```
 
 ## Inputs
-* `token`: Your GitHub token (e.g. `${{ github.token }}`) - **REQUIRED**
-* `tag`: The latest tag which triggered the job. (e.g. `${{ github.ref_name }}`) - **REQUIRED (unless using `fromTag` and `toTag`)**
-* `fromTag`: The tag from which the changelog is to be determined (latest) - **REQUIRED (unless using `tag`)**
-* `toTag`: The tag up to which the changelog is to be determined (oldest) - **REQUIRED (unless using `tag`)**
-* `excludeTypes`: A comma-separated list of commit types you want to exclude from the changelog (e.g. `doc,chore,perf`) - **Optional** - Default: `build,docs,other,style`
-* `writeToFile`: Should CHANGELOG.md be updated with latest changelog - **Optional** - Default: `true`
-* `includeRefIssues`: Should the changelog include the issues referenced for each PR. - **Optional** - Default: `true`
-* `useGitmojis`: Should type headers be prepended with their related gitmoji - **Optional** - Default: `true`
-* `includeInvalidCommits`: Whether to include commits that don't respect the Conventional Commits format - **Optional** - Default: `false`
+
+| Field | Description | Required | Default |
+|-------|-------------|:--------:|---------|
+| `token` | Your GitHub token (e.g. `${{ github.token }}`) | :white_check_mark: | |
+| `tag` | The latest tag which triggered the job. (e.g. `${{ github.ref_name }}`) | :white_check_mark: *(unless using `fromTag` and `toTag`)* | |
+| `fromTag` | The tag from which the changelog is to be determined (latest) | :white_check_mark: *(unless using `tag`)* | |
+| `toTag` | The tag up to which the changelog is to be determined (oldest) | :white_check_mark: *(unless using `tag`)* | |
+| `excludeTypes` | A comma-separated list of commit types you want to exclude from the changelog (e.g. `doc,chore,perf`) | :x: | `build,docs,other,style` |
+| `writeToFile` | Should CHANGELOG.md be updated with latest changelog | :x: | `true` |
+| `includeRefIssues` | Should the changelog include the issues referenced for each PR. | :x: | `true` |
+| `useGitmojis` | Should type headers be prepended with their related gitmoji | :x: | `true` |
+| `includeInvalidCommits` | Whether to include commits that don't respect the Conventional Commits format | :x: | `false` |
+| `reverseOrder` | List commits in reverse order (from newer to older) instead of the default (older to newer). | :x: | `false` |
 
 ## Outputs
-* `changes`: Generated CHANGELOG changes for the latest tag, without the version / date header (for use in GitHub Releases).
 
-## Important
+| Field | Description |
+|-------|-------------|
+| `changes` | Generated CHANGELOG changes for the latest tag, without the version / date header *(for use in GitHub Releases)*. |
+
+## :warning: Important :warning:
 
 You must already have 2 tags in your repository (1 previous tag + the current latest tag triggering the job). The job will exit with an error if it can't find the previous tag!

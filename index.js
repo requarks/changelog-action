@@ -69,6 +69,7 @@ async function main () {
   const includeRefIssues = core.getBooleanInput('includeRefIssues')
   const useGitmojis = core.getBooleanInput('useGitmojis')
   const includeInvalidCommits = core.getBooleanInput('includeInvalidCommits')
+  const reverseOrder = core.getBooleanInput('reverseOrder')
   const gh = github.getOctokit(token)
   const owner = github.context.repo.owner
   const repo = github.context.repo.repo
@@ -206,6 +207,10 @@ async function main () {
 
   if (commitsParsed.length < 1) {
     return core.setFailed('No valid commits parsed since previous tag.')
+  }
+
+  if (reverseOrder) {
+    commitsParsed.reverse()
   }
 
   // BUILD CHANGELOG
