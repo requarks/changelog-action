@@ -165,6 +165,7 @@ async function main () {
       const cAst = cc.toConventionalChangelogFormat(cc.parser(commit.commit.message))
       commitsParsed.push({
         ...cAst,
+        type: cAst.type.toLowerCase(),
         sha: commit.sha,
         url: commit.html_url,
         author: commit.author.login,
