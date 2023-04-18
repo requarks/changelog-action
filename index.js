@@ -3,7 +3,10 @@ const core = require('@actions/core')
 const _ = require('lodash')
 const cc = require('@conventional-commits/parser')
 const fs = require('fs').promises
+const process = require('process')
 const { setTimeout } = require('timers/promises')
+
+const githubServerUrl = process.env.GITHUB_SERVER_URL || 'https://github.com'
 
 const types = [
   { types: ['feat', 'feature'], header: 'New Features', icon: ':sparkles:' },
@@ -17,9 +20,6 @@ const types = [
   { types: ['chore'], header: 'Chores', icon: ':wrench:' },
   { types: ['other'], header: 'Other Changes', icon: ':flying_saucer:' }
 ]
-
-const process = require('process')
-const githubServerUrl = process.env.GITHUB_SERVER_URL || 'https://github.com';
 
 const rePrId = /#([0-9]+)/g
 const rePrEnding = /\(#([0-9]+)\)$/
