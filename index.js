@@ -3,7 +3,10 @@ const core = require('@actions/core')
 const _ = require('lodash')
 const cc = require('@conventional-commits/parser')
 const fs = require('fs').promises
+const process = require('process')
 const { setTimeout } = require('timers/promises')
+
+const githubServerUrl = process.env.GITHUB_SERVER_URL || 'https://github.com'
 
 const types = [
   { types: ['feat', 'feature'], header: 'New Features', icon: ':sparkles:' },
@@ -32,12 +35,12 @@ function buildSubject ({ writeToFile, subject, author, authorUrl, owner, repo })
       const msgOnly = subject.slice(0, prMatch[0].length * -1)
       output = msgOnly.replace(rePrId, (m, prId) => {
         prs.push(prId)
-        return `[#${prId}](https://github.com/${owner}/${repo}/pull/${prId})`
+        return `[#${prId}](${githubServerUrl}/${owner}/${repo}/pull/${prId})`
       })
-      output += `*(PR [#${prMatch[1]}](https://github.com/${owner}/${repo}/pull/${prMatch[1]})${authorLine})*`
+      output += `*(PR [#${prMatch[1]}](${githubServerUrl}/${owner}/${repo}/pull/${prMatch[1]})${authorLine})*`
     } else {
       output = subject.replace(rePrId, (m, prId) => {
-        return `[#${prId}](https://github.com/${owner}/${repo}/pull/${prId})`
+        return `[#${prId}](${githubServerUrl}/${owner}/${repo}/pull/${prId})`
       })
       if (author) {
         output += ` *(commit by [@${author}](${authorUrl}))*`
@@ -373,7 +376,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   if (firstVersionLine < lines.length) {
     output += '\n' + lines.slice(firstVersionLine).join('\n')
   }
-  output += `\n[${latestTag.name}]: https://github.com/${owner}/${repo}/compare/${previousTag.name}...${latestTag.name}`
+  output += `\n[${latestTag.name}]: ${githubServerUrl}/${owner}/${repo}/compare/${previousTag.name}...${latestTag.name}`
 
   // WRITE CHANGELOG TO FILE
 
