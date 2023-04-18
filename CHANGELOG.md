@@ -4,6 +4,12 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [v1.8.0] - 2023-04-18
+### :sparkles: New Features
+- [`a67af14`](https://github.com/requarks/changelog-action/commit/a67af14034e62802f8a8fa856a763a76d925df0d) - add support for GHE *(PR [#25](https://github.com/requarks/changelog-action/pull/25) by [@anden-dev](https://github.com/anden-dev))*
+  - :arrow_lower_right: *addresses issue [#24](undefined) opened by [@anden-dev](https://github.com/anden-dev)*
+
+
 ## [v1.7.0] - 2023-03-17
 ### :sparkles: New Features
 - [`01c1b24`](https://github.com/requarks/changelog-action/commit/01c1b24b234e079288271046481d408baad64656) - add reverseOrder option to list commits from newer to older *(commit by [@NGPixel](https://github.com/NGPixel))*
@@ -86,3 +92,4 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 [v1.5.0]: https://github.com/requarks/changelog-action/compare/v1.4.0...v1.5.0
 [v1.6.0]: https://github.com/requarks/changelog-action/compare/v1.5.0...v1.6.0
 [v1.7.0]: https://github.com/requarks/changelog-action/compare/v1.6.0...v1.7.0
+[v1.8.0]: https://github.com/requarks/changelog-action/compare/v1.7.0...v1.8.0
