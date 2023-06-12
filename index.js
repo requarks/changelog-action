@@ -291,37 +291,41 @@ async function main () {
         for (const prId of subjectVar.prs) {
           core.info(`Querying related issues for PR ${prId}...`)
           await setTimeout(500) // Make sure we don't go over GitHub API rate limits
-          const issuesRaw = await gh.graphql(`
-            query relIssues ($owner: String!, $repo: String!, $prId: Int!) {
-              repository (owner: $owner, name: $repo) {
-                pullRequest(number: $prId) {
-                  closingIssuesReferences(first: 50) {
-                    nodes {
-                      number
-                      author {
-                        login
-                        url
+          try {
+            const issuesRaw = await gh.graphql(`
+              query relIssues ($owner: String!, $repo: String!, $prId: Int!) {
+                repository (owner: $owner, name: $repo) {
+                  pullRequest(number: $prId) {
+                    closingIssuesReferences(first: 50) {
+                      nodes {
+                        number
+                        author {
+                          login
+                          url
+                        }
                       }
                     }
                   }
                 }
               }
+            `, {
+              owner,
+              repo,
+              prId: parseInt(prId)
+            })
+            const relIssues = _.get(issuesRaw, 'repository.pullRequest.closingIssuesReferences.nodes')
+            for (const relIssue of relIssues) {
+              const authorLogin = _.get(relIssue, 'author.login')
+              if (authorLogin) {
+                changesFile.push(`  - :arrow_lower_right: *${relIssuePrefix} issue [#${relIssue.number}](${relIssue.url}) opened by [@${authorLogin}](${relIssue.author.url})*`)
+                changesVar.push(`  - :arrow_lower_right: *${relIssuePrefix} issue #${relIssue.number} opened by @${authorLogin}*`)
+              } else {
+                changesFile.push(`  - :arrow_lower_right: *${relIssuePrefix} issue [#${relIssue.number}](${relIssue.url})*`)
+                changesVar.push(`  - :arrow_lower_right: *${relIssuePrefix} issue #${relIssue.number}*`)
+              }
             }
-          `, {
-            owner,
-            repo,
-            prId: parseInt(prId)
-          })
-          const relIssues = _.get(issuesRaw, 'repository.pullRequest.closingIssuesReferences.nodes')
-          for (const relIssue of relIssues) {
-            const authorLogin = _.get(relIssue, 'author.login')
-            if (authorLogin) {
-              changesFile.push(`  - :arrow_lower_right: *${relIssuePrefix} issue [#${relIssue.number}](${relIssue.url}) opened by [@${authorLogin}](${relIssue.author.url})*`)
-              changesVar.push(`  - :arrow_lower_right: *${relIssuePrefix} issue #${relIssue.number} opened by @${authorLogin}*`)
-            } else {
-              changesFile.push(`  - :arrow_lower_right: *${relIssuePrefix} issue [#${relIssue.number}](${relIssue.url})*`)
-              changesVar.push(`  - :arrow_lower_right: *${relIssuePrefix} issue #${relIssue.number}*`)
-            }
+          } catch (err) {
+            core.warning(`Failed to query issues related to PR ${prId}. Skipping.`)
           }
         }
       }
