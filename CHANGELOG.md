@@ -4,6 +4,11 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [v1.8.1] - 2023-06-12
+### :bug: Bug Fixes
+- [`cb9cac1`](https://github.com/requarks/changelog-action/commit/cb9cac16822feb7033a12db5731511e82f106d5c) - handle related PR issues query failures *(commit by [@NGPixel](https://github.com/NGPixel))*
+
+
 ## [v1.8.0] - 2023-04-18
 ### :sparkles: New Features
 - [`a67af14`](https://github.com/requarks/changelog-action/commit/a67af14034e62802f8a8fa856a763a76d925df0d) - add support for GHE *(PR [#25](https://github.com/requarks/changelog-action/pull/25) by [@anden-dev](https://github.com/anden-dev))*
@@ -93,3 +98,4 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 [v1.6.0]: https://github.com/requarks/changelog-action/compare/v1.5.0...v1.6.0
 [v1.7.0]: https://github.com/requarks/changelog-action/compare/v1.6.0...v1.7.0
 [v1.8.0]: https://github.com/requarks/changelog-action/compare/v1.7.0...v1.8.0
+[v1.8.1]: https://github.com/requarks/changelog-action/compare/v1.8.0...v1.8.1
