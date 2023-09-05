@@ -4,6 +4,12 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [v1.8.2] - 2023-09-05
+### :bug: Bug Fixes
+- [`19f583f`](https://github.com/requarks/changelog-action/commit/19f583f53722c093319992282c8efb8a956efd64) - action.yml output name *(PR [#30](https://github.com/requarks/changelog-action/pull/30) by [@cupofme](https://github.com/cupofme))*
+  - :arrow_lower_right: *fixes issue [#29](undefined) opened by [@cupofme](https://github.com/cupofme)*
+
+
 ## [v1.8.1] - 2023-06-12
 ### :bug: Bug Fixes
 - [`cb9cac1`](https://github.com/requarks/changelog-action/commit/cb9cac16822feb7033a12db5731511e82f106d5c) - handle related PR issues query failures *(commit by [@NGPixel](https://github.com/NGPixel))*
@@ -99,3 +105,4 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 [v1.7.0]: https://github.com/requarks/changelog-action/compare/v1.6.0...v1.7.0
 [v1.8.0]: https://github.com/requarks/changelog-action/compare/v1.7.0...v1.8.0
 [v1.8.1]: https://github.com/requarks/changelog-action/compare/v1.8.0...v1.8.1
+[v1.8.2]: https://github.com/requarks/changelog-action/compare/v1.8.1...v1.8.2
