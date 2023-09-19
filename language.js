@@ -1,4 +1,4 @@
-const i18n = {
+const language = {
     en: {
         feat: 'New Features',
         fix: 'Bug Fixes',
@@ -25,4 +25,4 @@ const i18n = {
     }
 }
 
-export default i18n
+module.exports = language

@@ -5,7 +5,7 @@ const cc = require('@conventional-commits/parser')
 const fs = require('fs').promises
 const process = require('process')
 const { setTimeout } = require('timers/promises')
-const i18n = require('i18n')
+const language = require('./language')
 
 const githubServerUrl = process.env.GITHUB_SERVER_URL || 'https://github.com'
 
@@ -263,7 +263,7 @@ async function main() {
       changesFile.push('')
       changesVar.push('')
     }
-    const header = i18n[lang][type.i18n]
+    const header = language[lang][type.language]
     changesFile.push(useGitmojis ? `### ${type.icon} ${header}` : `### ${header}`)
     changesVar.push(useGitmojis ? `### ${type.icon} ${header}` : `### ${header}`)
 
