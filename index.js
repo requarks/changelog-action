@@ -10,16 +10,16 @@ const language = require('./language')
 const githubServerUrl = process.env.GITHUB_SERVER_URL || 'https://github.com'
 
 const types = [
-  { types: ['feat', 'feature'], i18n: 'feat', icon: ':sparkles:' },
-  { types: ['fix', 'bugfix'], i18n: 'fix', icon: ':bug:', relIssuePrefix: 'fixes' },
-  { types: ['perf'], i18n: 'perf', icon: ':zap:' },
-  { types: ['refactor'], i18n: 'refactor', icon: ':recycle:' },
-  { types: ['test', 'tests'], i18n: 'test', icon: ':white_check_mark:' },
-  { types: ['build', 'ci'], i18n: 'build', icon: ':construction_worker:' },
-  { types: ['doc', 'docs'], i18n: 'doc', icon: ':memo:' },
-  { types: ['style'], i18n: 'style', icon: ':art:' },
-  { types: ['chore'], i18n: 'chore', icon: ':wrench:' },
-  { types: ['other'], i18n: 'other', icon: ':flying_saucer:' }
+  { types: ['feat', 'feature'], lang: 'feat', icon: ':sparkles:' },
+  { types: ['fix', 'bugfix'], lang: 'fix', icon: ':bug:', relIssuePrefix: 'fixes' },
+  { types: ['perf'], lang: 'perf', icon: ':zap:' },
+  { types: ['refactor'], lang: 'refactor', icon: ':recycle:' },
+  { types: ['test', 'tests'], lang: 'test', icon: ':white_check_mark:' },
+  { types: ['build', 'ci'], lang: 'build', icon: ':construction_worker:' },
+  { types: ['doc', 'docs'], lang: 'doc', icon: ':memo:' },
+  { types: ['style'], lang: 'style', icon: ':art:' },
+  { types: ['chore'], lang: 'chore', icon: ':wrench:' },
+  { types: ['other'], lang: 'other', icon: ':flying_saucer:' }
 ]
 
 const rePrId = /#([0-9]+)/g
@@ -263,7 +263,7 @@ async function main() {
       changesFile.push('')
       changesVar.push('')
     }
-    const header = language[lang][type.language]
+    const header = (language[lang] || language.en)[type.lang]
     changesFile.push(useGitmojis ? `### ${type.icon} ${header}` : `### ${header}`)
     changesVar.push(useGitmojis ? `### ${type.icon} ${header}` : `### ${header}`)
 
