@@ -38,6 +38,10 @@ inputs:
     description: List commits in reverse order (from newer to older) instead of the default (older to newer).
     required: false
     default: 'false'
+  lang:
+    description: Language of header (e.g. zh) default (en).
+    required: false
+    default: 'en'
 outputs:
   changes:
     description: Generated changelog
