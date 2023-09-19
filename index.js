@@ -5,26 +5,27 @@ const cc = require('@conventional-commits/parser')
 const fs = require('fs').promises
 const process = require('process')
 const { setTimeout } = require('timers/promises')
+const i18n = require('i18n')
 
 const githubServerUrl = process.env.GITHUB_SERVER_URL || 'https://github.com'
 
 const types = [
-  { types: ['feat', 'feature'], header: 'New Features', icon: ':sparkles:' },
-  { types: ['fix', 'bugfix'], header: 'Bug Fixes', icon: ':bug:', relIssuePrefix: 'fixes' },
-  { types: ['perf'], header: 'Performance Improvements', icon: ':zap:' },
-  { types: ['refactor'], header: 'Refactors', icon: ':recycle:' },
-  { types: ['test', 'tests'], header: 'Tests', icon: ':white_check_mark:' },
-  { types: ['build', 'ci'], header: 'Build System', icon: ':construction_worker:' },
-  { types: ['doc', 'docs'], header: 'Documentation Changes', icon: ':memo:' },
-  { types: ['style'], header: 'Code Style Changes', icon: ':art:' },
-  { types: ['chore'], header: 'Chores', icon: ':wrench:' },
-  { types: ['other'], header: 'Other Changes', icon: ':flying_saucer:' }
+  { types: ['feat', 'feature'], i18n: 'feat', icon: ':sparkles:' },
+  { types: ['fix', 'bugfix'], i18n: 'fix', icon: ':bug:', relIssuePrefix: 'fixes' },
+  { types: ['perf'], i18n: 'perf', icon: ':zap:' },
+  { types: ['refactor'], i18n: 'refactor', icon: ':recycle:' },
+  { types: ['test', 'tests'], i18n: 'test', icon: ':white_check_mark:' },
+  { types: ['build', 'ci'], i18n: 'build', icon: ':construction_worker:' },
+  { types: ['doc', 'docs'], i18n: 'doc', icon: ':memo:' },
+  { types: ['style'], i18n: 'style', icon: ':art:' },
+  { types: ['chore'], i18n: 'chore', icon: ':wrench:' },
+  { types: ['other'], i18n: 'other', icon: ':flying_saucer:' }
 ]
 
 const rePrId = /#([0-9]+)/g
 const rePrEnding = /\(#([0-9]+)\)$/
 
-function buildSubject ({ writeToFile, subject, author, authorUrl, owner, repo }) {
+function buildSubject({ writeToFile, subject, author, authorUrl, owner, repo }) {
   const hasPR = rePrEnding.test(subject)
   const prs = []
   let output = subject
@@ -62,7 +63,7 @@ function buildSubject ({ writeToFile, subject, author, authorUrl, owner, repo })
   }
 }
 
-async function main () {
+async function main() {
   const token = core.getInput('token')
   const tag = core.getInput('tag')
   const fromTag = core.getInput('fromTag')
@@ -73,6 +74,7 @@ async function main () {
   const useGitmojis = core.getBooleanInput('useGitmojis')
   const includeInvalidCommits = core.getBooleanInput('includeInvalidCommits')
   const reverseOrder = core.getBooleanInput('reverseOrder')
+  const lang = core.getInput('lang') || 'en'
   const gh = github.getOctokit(token)
   const owner = github.context.repo.owner
   const repo = github.context.repo.repo
@@ -261,8 +263,9 @@ async function main () {
       changesFile.push('')
       changesVar.push('')
     }
-    changesFile.push(useGitmojis ? `### ${type.icon} ${type.header}` : `### ${type.header}`)
-    changesVar.push(useGitmojis ? `### ${type.icon} ${type.header}` : `### ${type.header}`)
+    const header = i18n[lang][type.i18n]
+    changesFile.push(useGitmojis ? `### ${type.icon} ${header}` : `### ${header}`)
+    changesVar.push(useGitmojis ? `### ${type.icon} ${header}` : `### ${header}`)
 
     const relIssuePrefix = type.relIssuePrefix || 'addresses'
 

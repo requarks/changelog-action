@@ -128,6 +128,7 @@ jobs:
 | `useGitmojis` | Should type headers be prepended with their related gitmoji | :x: | `true` |
 | `includeInvalidCommits` | Whether to include commits that don't respect the Conventional Commits format | :x: | `false` |
 | `reverseOrder` | List commits in reverse order (from newer to older) instead of the default (older to newer). | :x: | `false` |
+| `lang` | Language of header (e.g. `zh`) | :x: | `en` |
 
 ## Outputs
 
