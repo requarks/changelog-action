@@ -558,7 +558,7 @@ class OidcClient {
                 .catch(error => {
                 throw new Error(`Failed to get ID Token. \n 
         Error Code : ${error.statusCode}\n 
-        Error Message: ${error.result.message}`);
+        Error Message: ${error.message}`);
             });
             const id_token = (_a = res.result) === null || _a === void 0 ? void 0 : _a.value;
             if (!id_token) {
@@ -27916,7 +27916,7 @@ const { setTimeout } = __nccwpck_require__(8670)
 
 const githubServerUrl = process.env.GITHUB_SERVER_URL || 'https://github.com'
 
-const types = [
+const allTypes = [
   { types: ['feat', 'feature'], header: 'New Features', icon: ':sparkles:' },
   { types: ['fix', 'bugfix'], header: 'Bug Fixes', icon: ':bug:', relIssuePrefix: 'fixes' },
   { types: ['perf'], header: 'Performance Improvements', icon: ':zap:' },
@@ -27976,6 +27976,8 @@ async function main () {
   const fromTag = core.getInput('fromTag')
   const toTag = core.getInput('toTag')
   const excludeTypes = (core.getInput('excludeTypes') || '').split(',').map(t => t.trim())
+  const excludeScopes = (core.getInput('excludeScopes') || '').split(',').map(t => t.trim())
+  const restrictToTypes = (core.getInput('restrictToTypes') || '').split(',').map(t => t.trim())
   const writeToFile = core.getBooleanInput('writeToFile')
   const includeRefIssues = core.getBooleanInput('includeRefIssues')
   const useGitmojis = core.getBooleanInput('useGitmojis')
@@ -28130,6 +28132,7 @@ async function main () {
   const changesVar = []
   let idx = 0
 
+  // -> Handle breaking changes
   if (breakingChanges.length > 0) {
     changesFile.push(useGitmojis ? '### :boom: BREAKING CHANGES' : '### BREAKING CHANGES')
     changesVar.push(useGitmojis ? '### :boom: BREAKING CHANGES' : '### BREAKING CHANGES')
@@ -28157,10 +28160,22 @@ async function main () {
     idx++
   }
 
-  for (const type of types) {
-    if (_.intersection(type.types, excludeTypes).length > 0) {
-      continue
+  // -> Filter types
+  const types = []
+  for (const type of allTypes) {
+    if (restrictToTypes.length > 0) {
+      if (_.intersection(type.types, restrictToTypes).length > 0) {
+        types.push(type)
+      }
+    } else {
+      if (_.intersection(type.types, excludeTypes).length === 0) {
+        types.push(type)
+      }
     }
+  }
+
+  // -> Group commits by type
+  for (const type of types) {
     const matchingCommits = commitsParsed.filter(c => type.types.includes(c.type))
     if (matchingCommits.length < 1) {
       continue
@@ -28175,6 +28190,9 @@ async function main () {
     const relIssuePrefix = type.relIssuePrefix || 'addresses'
 
     for (const commit of matchingCommits) {
+      if (excludeScopes.length > 0 && excludeScopes.includes(commit.scope)) {
+        continue
+      }
       const scope = commit.scope ? `**${commit.scope}**: ` : ''
       const subjectFile = buildSubject({
         writeToFile: true,

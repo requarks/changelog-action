@@ -123,6 +123,8 @@ jobs:
 | `fromTag` | The tag from which the changelog is to be determined (latest) | :white_check_mark: <br> *(unless using `tag`)* | |
 | `toTag` | The tag up to which the changelog is to be determined (oldest) | :white_check_mark: <br> *(unless using `tag`)* | |
 | `excludeTypes` | A comma-separated list of commit types you want to exclude from the changelog (e.g. `doc,chore,perf`) | :x: | `build,docs,other,style` |
+| `excludeScopes` | A comma-separated list of commit scopes you want to include in the changelog (e.g. `dev,release`) | :x: | |
+| `restrictToTypes` | A comma-separated list of commit types you want to restrict to for the changelog (e.g. `feat,fix,refactor`). Overrides `excludeTypes` if defined. | :x: | |
 | `writeToFile` | Should CHANGELOG.md be updated with latest changelog | :x: | `true` |
 | `includeRefIssues` | Should the changelog include the issues referenced for each PR. | :x: | `true` |
 | `useGitmojis` | Should type headers be prepended with their related gitmoji | :x: | `true` |
