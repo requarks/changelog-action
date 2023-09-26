@@ -27975,9 +27975,9 @@ async function main () {
   const tag = core.getInput('tag')
   const fromTag = core.getInput('fromTag')
   const toTag = core.getInput('toTag')
-  const excludeTypes = (core.getInput('excludeTypes') || '').split(',').map(t => t.trim())
-  const excludeScopes = (core.getInput('excludeScopes') || '').split(',').map(t => t.trim())
-  const restrictToTypes = (core.getInput('restrictToTypes') || '').split(',').map(t => t.trim())
+  const excludeTypes = (core.getInput('excludeTypes') || '').split(',').map(t => t.trim()).filter(t => t)
+  const excludeScopes = (core.getInput('excludeScopes') || '').split(',').map(t => t.trim()).filter(t => t)
+  const restrictToTypes = (core.getInput('restrictToTypes') || '').split(',').map(t => t.trim()).filter(t => t)
   const writeToFile = core.getBooleanInput('writeToFile')
   const includeRefIssues = core.getBooleanInput('includeRefIssues')
   const useGitmojis = core.getBooleanInput('useGitmojis')
@@ -28173,6 +28173,7 @@ async function main () {
       }
     }
   }
+  core.info(`Selected Types: ${types.map(t => t.types.join(', ')).join(', ')}`)
 
   // -> Group commits by type
   for (const type of types) {
