@@ -4,6 +4,11 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [v1.10.0] - 2024-01-16
+### :sparkles: New Features
+- [`6f10593`](https://github.com/requarks/changelog-action/commit/6f105938d7e03ad300949d064c6ccf739e79a3d0) - add changelogFilePath option *(PR [#44](https://github.com/requarks/changelog-action/pull/44) by [@kiyoon](https://github.com/kiyoon))*
+
+
 ## [v1.9.0] - 2023-09-26
 ### :sparkles: New Features
 - [`dba389d`](https://github.com/requarks/changelog-action/commit/dba389d510fcf5b8327fe14221b569489dec425d) - add excludeScopes + restrictToTypes options *(commit by [@NGPixel](https://github.com/NGPixel))*
@@ -115,3 +120,4 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 [v1.8.1]: https://github.com/requarks/changelog-action/compare/v1.8.0...v1.8.1
 [v1.8.2]: https://github.com/requarks/changelog-action/compare/v1.8.1...v1.8.2
 [v1.9.0]: https://github.com/requarks/changelog-action/compare/v1.8.2...v1.9.0
+[v1.10.0]: https://github.com/requarks/changelog-action/compare/v1.9.0...v1.10.0
