@@ -30,6 +30,10 @@ inputs:
     description: Should CHANGELOG.md be updated with latest changelog
     required: false
     default: 'true'
+  changelogFilePath:
+    description: Path to the changelog file
+    required: false
+    default: 'CHANGELOG.md'
   includeRefIssues:
     description: Should the changelog include the issues referenced for each PR.
     required: false

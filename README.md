@@ -126,6 +126,7 @@ jobs:
 | `excludeScopes` | A comma-separated list of commit scopes you want to include in the changelog (e.g. `dev,release`) | :x: | |
 | `restrictToTypes` | A comma-separated list of commit types you want to restrict to for the changelog (e.g. `feat,fix,refactor`). Overrides `excludeTypes` if defined. | :x: | |
 | `writeToFile` | Should CHANGELOG.md be updated with latest changelog | :x: | `true` |
+| `changelogFilePath` | The CHANGELOG.md file path when `writeToFile` is `true` | :x: | `CHANGELOG.md` |
 | `includeRefIssues` | Should the changelog include the issues referenced for each PR. | :x: | `true` |
 | `useGitmojis` | Should type headers be prepended with their related gitmoji | :x: | `true` |
 | `includeInvalidCommits` | Whether to include commits that don't respect the Conventional Commits format | :x: | `false` |

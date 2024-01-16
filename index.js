@@ -71,6 +71,7 @@ async function main () {
   const excludeScopes = (core.getInput('excludeScopes') || '').split(',').map(t => t.trim()).filter(t => t)
   const restrictToTypes = (core.getInput('restrictToTypes') || '').split(',').map(t => t.trim()).filter(t => t)
   const writeToFile = core.getBooleanInput('writeToFile')
+  const changelogFilePath = core.getInput('changelogFilePath')
   const includeRefIssues = core.getBooleanInput('includeRefIssues')
   const useGitmojis = core.getBooleanInput('useGitmojis')
   const includeInvalidCommits = core.getBooleanInput('includeInvalidCommits')
@@ -367,9 +368,9 @@ async function main () {
 
   let chglog = ''
   try {
-    chglog = await fs.readFile('CHANGELOG.md', 'utf8')
+    chglog = await fs.readFile(changelogFilePath, 'utf8')
   } catch (err) {
-    core.info('Couldn\'t find a CHANGELOG.md, creating a new one...')
+    core.info(`Couldn\'t find a ${changelogFilePath}, creating a new one...`)
     chglog = `# Changelog
 All notable changes to this project will be documented in this file.
 
@@ -403,7 +404,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
   // WRITE CHANGELOG TO FILE
 
-  await fs.writeFile('CHANGELOG.md', output)
+  await fs.writeFile(changelogFilePath, output)
 }
 
 main()
