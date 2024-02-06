@@ -319,6 +319,7 @@ async function main () {
                     closingIssuesReferences(first: 50) {
                       nodes {
                         number
+                        url
                         author {
                           login
                           url

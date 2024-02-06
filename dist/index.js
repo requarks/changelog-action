@@ -5,6 +5,7 @@
 /***/ (function(__unused_webpack_module, exports, __nccwpck_require__) {
 
 "use strict";
+
 var __createBinding = (this && this.__createBinding) || (Object.create ? (function(o, m, k, k2) {
     if (k2 === undefined) k2 = k;
     Object.defineProperty(o, k2, { enumerable: true, get: function() { return m[k]; } });
@@ -28226,6 +28227,7 @@ async function main () {
                     closingIssuesReferences(first: 50) {
                       nodes {
                         number
+                        url
                         author {
                           login
                           url
@@ -28320,3 +28322,4 @@ main()
 
 module.exports = __webpack_exports__;
 /******/ })()
+;
