@@ -5,6 +5,7 @@ inputs:
   token:
     description: GitHub Token
     required: true
+    default: ${{ github.token }}
   tag:
     description: The latest tag (which triggered this job) (only if using latest tag)
     required: false
