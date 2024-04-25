@@ -4,6 +4,12 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [v1.10.2] - 2024-04-25
+### :bug: Bug Fixes
+- [`6d71e09`](https://github.com/requarks/changelog-action/commit/6d71e098526ee17bae963f058d34cd763378337f) - add end of file return to changelog file *(PR [#56](https://github.com/requarks/changelog-action/pull/56) by [@sjpalf](https://github.com/sjpalf))*
+  - :arrow_lower_right: *fixes issue [#54](https://github.com/requarks/changelog-action/issues/54) opened by [@leezero-carbon](https://github.com/leezero-carbon)*
+
+
 ## [v1.10.1] - 2024-02-06
 ### :bug: Bug Fixes
 - [`4a2c34a`](https://github.com/requarks/changelog-action/commit/4a2c34a1a8fcfa9e48e61960aad0affc15066393) - incorrect related issue URL in file-based changelog output *(commit by [@NGPixel](https://github.com/NGPixel))*
@@ -127,3 +133,4 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 [v1.9.0]: https://github.com/requarks/changelog-action/compare/v1.8.2...v1.9.0
 [v1.10.0]: https://github.com/requarks/changelog-action/compare/v1.9.0...v1.10.0
 [v1.10.1]: https://github.com/requarks/changelog-action/compare/v1.10.0...v1.10.1
+[v1.10.2]: https://github.com/requarks/changelog-action/compare/v1.10.1...v1.10.2
