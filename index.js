@@ -18,7 +18,8 @@ const allTypes = [
   { types: ['doc', 'docs'], header: 'Documentation Changes', icon: ':memo:' },
   { types: ['style'], header: 'Code Style Changes', icon: ':art:' },
   { types: ['chore'], header: 'Chores', icon: ':wrench:' },
-  { types: ['other'], header: 'Other Changes', icon: ':flying_saucer:' }
+  { types: ['other'], header: 'Other Changes', icon: ':flying_saucer:' },
+  { types: ['revert'], header: 'Reverts', icon: ':rewind:' }
 ]
 
 const rePrId = /#([0-9]+)/g
