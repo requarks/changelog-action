@@ -50,6 +50,10 @@ inputs:
     description: List commits in reverse order (from newer to older) instead of the default (older to newer).
     required: false
     default: 'false'
+  includeLinksToGithub:
+    description: Include links to the GitHub issues and PRs (set to false to not add links)
+    required: false
+    default: 'true'
 outputs:
   changes:
     description: Generated changelog
