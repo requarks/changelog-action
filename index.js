@@ -406,12 +406,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
     output += '\n' + lines.slice(firstVersionLine).join('\n')
   }
 
-  // add newline character at end of output if it doesn't already exists
+  // add newline character at end of output if it doesn't already exist
   if (!output.endsWith('\n')) {
     output += '\n'
   }
-  const outputLink = includeLinksToGithub ? `${githubServerUrl}/${owner}/${repo}/compare/${previousTag.name}...${latestTag.name}\n` : ''
-  output += `[${latestTag.name}]: ${outputLink}\n`
+  output += `[${latestTag.name}]: ${githubServerUrl}/${owner}/${repo}/compare/${previousTag.name}...${latestTag.name}\n`
 
   // WRITE CHANGELOG TO FILE
 
