@@ -27932,7 +27932,7 @@ const allTypes = [
 const rePrId = /#([0-9]+)/g
 const rePrEnding = /\(#([0-9]+)\)$/
 
-function buildSubject ({ writeToFile, subject, author, authorUrl, owner, repo }) {
+function buildSubject({ writeToFile, subject, author, authorUrl, owner, repo }) {
   const hasPR = rePrEnding.test(subject)
   const prs = []
   let output = subject
@@ -27970,7 +27970,58 @@ function buildSubject ({ writeToFile, subject, author, authorUrl, owner, repo })
   }
 }
 
-async function main () {
+function parseBodyCommits(messageBody, includeInvalidCommits) {
+  if (!messageBody) return []
+
+  const bodyLines = messageBody.split('\n').map(line => line.trim()).filter(Boolean)
+  const commits = []
+
+  let currentCommit = ''
+  for (const line of bodyLines) {
+    // Check if line starts with a conventional commit type
+    const commitMatch = line.match(/^(feat|fix|perf|refactor|test|build|ci|doc|docs|style|chore)(\(.*?\))?:\s(.+)/)
+
+    if (commitMatch) {
+      // If we have accumulated a previous commit, try to parse it
+      if (currentCommit) {
+        try {
+          const ast = cc.toConventionalChangelogFormat(cc.parser(currentCommit))
+          commits.push(ast)
+        } catch (err) {
+          if (includeInvalidCommits) {
+            commits.push({
+              type: 'other',
+              subject: currentCommit
+            })
+          }
+        }
+      }
+      currentCommit = line
+    } else if (line && currentCommit) {
+      // Append non-empty lines to current commit
+      currentCommit += '\n' + line
+    }
+  }
+
+  // Parse the last accumulated commit if any
+  if (currentCommit) {
+    try {
+      const ast = cc.toConventionalChangelogFormat(cc.parser(currentCommit))
+      commits.push(ast)
+    } catch (err) {
+      if (includeInvalidCommits) {
+        commits.push({
+          type: 'other',
+          subject: currentCommit
+        })
+      }
+    }
+  }
+
+  return commits
+}
+
+async function main() {
   const token = core.getInput('token')
   const tag = core.getInput('tag')
   const fromTag = core.getInput('fromTag')
@@ -27995,15 +28046,18 @@ async function main () {
   if (tag && (fromTag || toTag)) {
     return core.setFailed(`Must provide EITHER input tag OR (fromTag and toTag), not both!`)
   } else if (tag) {
-
     // GET LATEST + PREVIOUS TAGS
-
     core.info(`Using input tag: ${tag}`)
 
-    const tagsRaw = await gh.graphql(`
-      query lastTags ($owner: String!, $repo: String!) {
-        repository (owner: $owner, name: $repo) {
-          refs(first: 2, refPrefix: "refs/tags/", orderBy: { field: TAG_COMMIT_DATE, direction: DESC }) {
+    const tagsRaw = await gh.graphql(
+      `
+      query lastTags($owner: String!, $repo: String!) {
+        repository(owner: $owner, name: $repo) {
+          refs(
+            first: 2
+            refPrefix: "refs/tags/"
+            orderBy: { field: TAG_COMMIT_DATE, direction: DESC }
+          ) {
             nodes {
               name
               target {
@@ -28013,37 +28067,43 @@ async function main () {
           }
         }
       }
-    `, {
-      owner,
-      repo
-    })
+    `,
+      {
+        owner,
+        repo
+      }
+    )
 
     latestTag = _.get(tagsRaw, 'repository.refs.nodes[0]')
     previousTag = _.get(tagsRaw, 'repository.refs.nodes[1]')
 
     if (!latestTag) {
-      return core.setFailed('Couldn\'t find the latest tag. Make sure you have an existing tag already before creating a new one.')
+      return core.setFailed(
+        "Couldn't find the latest tag. Make sure you have an existing tag already before creating a new one."
+      )
     }
     if (!previousTag) {
-      return core.setFailed('Couldn\'t find a previous tag. Make sure you have at least 2 tags already (current tag + previous initial tag).')
+      return core.setFailed(
+        "Couldn't find a previous tag. Make sure you have at least 2 tags already (current tag + previous initial tag)."
+      )
     }
 
     if (latestTag.name !== tag) {
-      return core.setFailed(`Provided tag doesn\'t match latest tag ${tag}.`)
+      return core.setFailed(`Provided tag doesn't match latest tag ${tag}.`)
     }
 
     core.info(`Using latest tag: ${latestTag.name}`)
     core.info(`Using previous tag: ${previousTag.name}`)
   } else if (fromTag && toTag) {
-
     // GET FROM + TO TAGS FROM INPUTS
-
-    latestTag = { name: fromTag }
-    previousTag = { name: toTag }
+    previousTag = { name: fromTag }
+    latestTag = { name: toTag }
 
     core.info(`Using tag range: ${fromTag} to ${toTag}`)
   } else {
-    return core.setFailed(`Must provide either input tag OR (fromTag and toTag). None were provided!`)
+    return core.setFailed(
+      `Must provide either input tag OR (fromTag and toTag). None were provided!`
+    )
   }
 
   // GET COMMITS
@@ -28071,7 +28131,9 @@ async function main () {
   } while (hasMoreCommits)
 
   if (!commits || commits.length < 1) {
-    return core.setFailed('Couldn\'t find any commits between latest and previous tags.')
+    return core.setFailed(
+      "Couldn't find any commits between latest and previous tags."
+    )
   }
 
   // PARSE COMMITS
@@ -28080,28 +28142,57 @@ async function main () {
   const breakingChanges = []
   for (const commit of commits) {
     try {
-      const cAst = cc.toConventionalChangelogFormat(cc.parser(commit.commit.message))
+      // Split commit message into header and body
+      const [header, ...bodyLines] = commit.commit.message
+        .split('\n')
+        .map(line => line.trim())
+
+      // Parse the header
+      const headerAst = cc.toConventionalChangelogFormat(cc.parser(header))
       commitsParsed.push({
-        ...cAst,
-        type: cAst.type.toLowerCase(),
+        ...headerAst,
+        type: headerAst.type.toLowerCase(),
         sha: commit.sha,
         url: commit.html_url,
         author: _.get(commit, 'author.login'),
         authorUrl: _.get(commit, 'author.html_url')
       })
-      for (const note of cAst.notes) {
+      core.info(
+        `[OK] Commit ${commit.sha} of type ${headerAst.type} - ${headerAst.subject}`
+      )
+
+      // Always parse body commits
+      const bodyMessage = bodyLines.join('\n')
+      const bodyCommits = parseBodyCommits(bodyMessage, includeInvalidCommits)
+
+      for (const bodyCommit of bodyCommits) {
+        commitsParsed.push({
+          ...bodyCommit,
+          type: bodyCommit.type.toLowerCase(),
+          sha: commit.sha,
+          url: commit.html_url,
+          author: _.get(commit, 'author.login'),
+          authorUrl: _.get(commit, 'author.html_url'),
+          fromBody: true
+        })
+        core.info(
+          `[OK] Body commit ${commit.sha} of type ${bodyCommit.type} - ${bodyCommit.subject}`
+        )
+      }
+
+      // Process breaking changes as before
+      for (const note of headerAst.notes) {
         if (note.title === 'BREAKING CHANGE') {
           breakingChanges.push({
             sha: commit.sha,
             url: commit.html_url,
-            subject: cAst.subject,
+            subject: headerAst.subject,
             author: _.get(commit, 'author.login'),
             authorUrl: _.get(commit, 'author.html_url'),
             text: note.text
           })
         }
       }
-      core.info(`[OK] Commit ${commit.sha} of type ${cAst.type} - ${cAst.subject}`)
     } catch (err) {
       if (includeInvalidCommits) {
         commitsParsed.push({
@@ -28112,9 +28203,13 @@ async function main () {
           author: _.get(commit, 'author.login'),
           authorUrl: _.get(commit, 'author.html_url')
         })
-        core.info(`[OK] Commit ${commit.sha} with invalid type, falling back to other - ${commit.commit.message}`)
+        core.info(
+          `[OK] Commit ${commit.sha} with invalid type, falling back to other - ${commit.commit.message}`
+        )
       } else {
-        core.info(`[INVALID] Skipping commit ${commit.sha} as it doesn't follow conventional commit format.`)
+        core.info(
+          `[INVALID] Skipping commit ${commit.sha} as it doesn't follow conventional commit format.`
+        )
       }
     }
   }
@@ -28135,10 +28230,17 @@ async function main () {
 
   // -> Handle breaking changes
   if (breakingChanges.length > 0) {
-    changesFile.push(useGitmojis ? '### :boom: BREAKING CHANGES' : '### BREAKING CHANGES')
-    changesVar.push(useGitmojis ? '### :boom: BREAKING CHANGES' : '### BREAKING CHANGES')
+    changesFile.push(
+      useGitmojis ? '### :boom: BREAKING CHANGES' : '### BREAKING CHANGES'
+    )
+    changesVar.push(
+      useGitmojis ? '### :boom: BREAKING CHANGES' : '### BREAKING CHANGES'
+    )
     for (const breakChange of breakingChanges) {
-      const body = breakChange.text.split('\n').map(ln => `  ${ln}`).join('  \n')
+      const body = breakChange.text
+        .split('\n')
+        .map(ln => `  ${ln}`)
+        .join('  \n')
       const subjectFile = buildSubject({
         writeToFile: true,
         subject: breakChange.subject,
@@ -28155,8 +28257,18 @@ async function main () {
         owner,
         repo
       })
-      changesFile.push(`- due to [\`${breakChange.sha.substring(0, 7)}\`](${breakChange.url}) - ${subjectFile.output}:\n\n${body}\n`)
-      changesVar.push(`- due to [\`${breakChange.sha.substring(0, 7)}\`](${breakChange.url}) - ${subjectVar.output}:\n\n${body}\n`)
+      changesFile.push(
+        `- due to [\`${breakChange.sha.substring(
+          0,
+          7
+        )}\`](${breakChange.url}) - ${subjectFile.output}:\n\n${body}\n`
+      )
+      changesVar.push(
+        `- due to [\`${breakChange.sha.substring(
+          0,
+          7
+        )}\`](${breakChange.url}) - ${subjectVar.output}:\n\n${body}\n`
+      )
     }
     idx++
   }
@@ -28174,11 +28286,15 @@ async function main () {
       }
     }
   }
-  core.info(`Selected Types: ${types.map(t => t.types.join(', ')).join(', ')}`)
+  core.info(
+    `Selected Types: ${types.map(t => t.types.join(', ')).join(', ')}`
+  )
 
   // -> Group commits by type
   for (const type of types) {
-    const matchingCommits = commitsParsed.filter(c => type.types.includes(c.type))
+    const matchingCommits = commitsParsed.filter(c =>
+      type.types.includes(c.type)
+    )
     if (matchingCommits.length < 1) {
       continue
     }
@@ -28186,8 +28302,16 @@ async function main () {
       changesFile.push('')
       changesVar.push('')
     }
-    changesFile.push(useGitmojis ? `### ${type.icon} ${type.header}` : `### ${type.header}`)
-    changesVar.push(useGitmojis ? `### ${type.icon} ${type.header}` : `### ${type.header}`)
+    changesFile.push(
+      useGitmojis
+        ? `### ${type.icon} ${type.header}`
+        : `### ${type.header}`
+    )
+    changesVar.push(
+      useGitmojis
+        ? `### ${type.icon} ${type.header}`
+        : `### ${type.header}`
+    )
 
     const relIssuePrefix = type.relIssuePrefix || 'addresses'
 
@@ -28212,17 +28336,22 @@ async function main () {
         owner,
         repo
       })
-      changesFile.push(`- [\`${commit.sha.substring(0, 7)}\`](${commit.url}) - ${scope}${subjectFile.output}`)
-      changesVar.push(`- [\`${commit.sha.substring(0, 7)}\`](${commit.url}) - ${scope}${subjectVar.output}`)
+      changesFile.push(
+        `- [\`${commit.sha.substring(0, 7)}\`](${commit.url}) - ${scope}${subjectFile.output}`
+      )
+      changesVar.push(
+        `- [\`${commit.sha.substring(0, 7)}\`](${commit.url}) - ${scope}${subjectVar.output}`
+      )
 
       if (includeRefIssues && subjectVar.prs.length > 0) {
         for (const prId of subjectVar.prs) {
           core.info(`Querying related issues for PR ${prId}...`)
-          await setTimeout(500) // Make sure we don't go over GitHub API rate limits
+          await setTimeout(500) // Avoid GitHub API rate limits
           try {
-            const issuesRaw = await gh.graphql(`
-              query relIssues ($owner: String!, $repo: String!, $prId: Int!) {
-                repository (owner: $owner, name: $repo) {
+            const issuesRaw = await gh.graphql(
+              `
+              query relIssues($owner: String!, $repo: String!, $prId: Int!) {
+                repository(owner: $owner, name: $repo) {
                   pullRequest(number: $prId) {
                     closingIssuesReferences(first: 50) {
                       nodes {
@@ -28237,24 +28366,39 @@ async function main () {
                   }
                 }
               }
-            `, {
-              owner,
-              repo,
-              prId: parseInt(prId)
-            })
-            const relIssues = _.get(issuesRaw, 'repository.pullRequest.closingIssuesReferences.nodes')
+            `,
+              {
+                owner,
+                repo,
+                prId: parseInt(prId)
+              }
+            )
+            const relIssues = _.get(
+              issuesRaw,
+              'repository.pullRequest.closingIssuesReferences.nodes'
+            )
             for (const relIssue of relIssues) {
               const authorLogin = _.get(relIssue, 'author.login')
               if (authorLogin) {
-                changesFile.push(`  - :arrow_lower_right: *${relIssuePrefix} issue [#${relIssue.number}](${relIssue.url}) opened by [@${authorLogin}](${relIssue.author.url})*`)
-                changesVar.push(`  - :arrow_lower_right: *${relIssuePrefix} issue #${relIssue.number} opened by @${authorLogin}*`)
+                changesFile.push(
+                  `  - :arrow_lower_right: *${relIssuePrefix} issue [#${relIssue.number}](${relIssue.url}) opened by [@${authorLogin}](${relIssue.author.url})*`
+                )
+                changesVar.push(
+                  `  - :arrow_lower_right: *${relIssuePrefix} issue #${relIssue.number} opened by @${authorLogin}*`
+                )
               } else {
-                changesFile.push(`  - :arrow_lower_right: *${relIssuePrefix} issue [#${relIssue.number}](${relIssue.url})*`)
-                changesVar.push(`  - :arrow_lower_right: *${relIssuePrefix} issue #${relIssue.number}*`)
+                changesFile.push(
+                  `  - :arrow_lower_right: *${relIssuePrefix} issue [#${relIssue.number}](${relIssue.url})*`
+                )
+                changesVar.push(
+                  `  - :arrow_lower_right: *${relIssuePrefix} issue #${relIssue.number}*`
+                )
               }
             }
           } catch (err) {
-            core.warning(`Failed to query issues related to PR ${prId}. Skipping.`)
+            core.warning(
+              `Failed to query issues related to PR ${prId}. Skipping.`
+            )
           }
         }
       }
@@ -28269,48 +28413,21 @@ async function main () {
     return core.warning('Nothing to add to changelog because of excluded types.')
   }
 
+  // SET OUTPUT FOR WORKFLOW
   core.setOutput('changes', changesVar.join('\n'))
 
-  if (!writeToFile) { return }
-
-  // PARSE EXISTING CHANGELOG
-
-  let chglog = ''
-  try {
-    chglog = await fs.readFile(changelogFilePath, 'utf8')
-  } catch (err) {
-    core.info(`Couldn\'t find a ${changelogFilePath}, creating a new one...`)
-    chglog = `# Changelog
-All notable changes to this project will be documented in this file.
-
-The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
-and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
-`
+  if (!writeToFile) {
+    return
   }
 
-  // UPDATE CHANGELOG CONTENTS
-
-  const lines = chglog.replace(/\r/g, '').split('\n')
-  let firstVersionLine = _.findIndex(lines, l => l.startsWith('## '))
-
-  if (firstVersionLine >= 0 && lines[firstVersionLine].startsWith(`## [${latestTag.name}`)) {
-    return core.notice('This version already exists in the CHANGELOG! No change will be made to the CHANGELOG.')
-  }
-
-  if (firstVersionLine < 0) {
-    firstVersionLine = lines.length
-  }
+  // BUILD CHANGELOG CONTENT
 
   let output = ''
-  if (firstVersionLine > 0) {
-    output += lines.slice(0, firstVersionLine).join('\n') + '\n'
-  }
-  output += `## [${latestTag.name}] - ${currentISODate}\n${changesFile.join('\n')}\n`
-  if (firstVersionLine < lines.length) {
-    output += '\n' + lines.slice(firstVersionLine).join('\n')
-  }
+  output += `## [${latestTag.name}] - ${currentISODate}\n${changesFile.join(
+    '\n'
+  )}\n`
 
-  // add newline character at end of output if it doesn't already exists
+  // Ensure output ends with a newline character
   if (!output.endsWith('\n')) {
     output += '\n'
   }
