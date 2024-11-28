@@ -53,6 +53,8 @@ inputs:
 outputs:
   changes:
     description: Generated changelog
+  changesPlainText:
+    description: Plain Text version of the changes
 runs:
   using: 'node20'
   main: 'dist/index.js'
