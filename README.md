@@ -131,6 +131,7 @@ jobs:
 | `useGitmojis` | Should type headers be prepended with their related gitmoji | :x: | `true` |
 | `includeInvalidCommits` | Whether to include commits that don't respect the Conventional Commits format | :x: | `false` |
 | `reverseOrder` | List commits in reverse order (from newer to older) instead of the default (older to newer). | :x: | `false` |
+| `includeLinksToGithub`  | Include links to the GitHub issues and PRs (set to false to not add links) | :x: | `true` |
 
 ## Outputs
 

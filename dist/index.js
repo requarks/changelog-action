@@ -27984,6 +27984,7 @@ async function main () {
   const useGitmojis = core.getBooleanInput('useGitmojis')
   const includeInvalidCommits = core.getBooleanInput('includeInvalidCommits')
   const reverseOrder = core.getBooleanInput('reverseOrder')
+  const includeLinksToGithub = core.getBooleanInput('includeLinksToGithub')
   const gh = github.getOctokit(token)
   const owner = github.context.repo.owner
   const repo = github.context.repo.repo
@@ -28155,8 +28156,9 @@ async function main () {
         owner,
         repo
       })
-      changesFile.push(`- due to [\`${breakChange.sha.substring(0, 7)}\`](${breakChange.url}) - ${subjectFile.output}:\n\n${body}\n`)
-      changesVar.push(`- due to [\`${breakChange.sha.substring(0, 7)}\`](${breakChange.url}) - ${subjectVar.output}:\n\n${body}\n`)
+      const linkToBreakingChange = includeLinksToGithub ? `- [\`${breakChange.sha.substring(0, 7)}\`](${breakChange.url}) - ` : ''
+      changesFile.push(`- due to ${linkToBreakingChange}${subjectFile.output}:\n\n${body}\n`)
+      changesVar.push(`- due to ${linkToBreakingChange}${subjectVar.output}:\n\n${body}\n`)
     }
     idx++
   }
@@ -28212,8 +28214,9 @@ async function main () {
         owner,
         repo
       })
-      changesFile.push(`- [\`${commit.sha.substring(0, 7)}\`](${commit.url}) - ${scope}${subjectFile.output}`)
-      changesVar.push(`- [\`${commit.sha.substring(0, 7)}\`](${commit.url}) - ${scope}${subjectVar.output}`)
+      const linkToCommit = includeLinksToGithub ? `- [\`${commit.sha.substring(0, 7)}\`](${commit.url})` : ''
+      changesFile.push(`${linkToCommit} - ${scope}${subjectFile.output}`)
+      changesVar.push(`${linkToCommit} - ${scope}${subjectVar.output}`)
 
       if (includeRefIssues && subjectVar.prs.length > 0) {
         for (const prId of subjectVar.prs) {
@@ -28245,11 +28248,12 @@ async function main () {
             const relIssues = _.get(issuesRaw, 'repository.pullRequest.closingIssuesReferences.nodes')
             for (const relIssue of relIssues) {
               const authorLogin = _.get(relIssue, 'author.login')
+              const linkToRelIssue = includeLinksToGithub ? `[#${relIssue.number}](${relIssue.url})` : `#${relIssue.number}`
               if (authorLogin) {
-                changesFile.push(`  - :arrow_lower_right: *${relIssuePrefix} issue [#${relIssue.number}](${relIssue.url}) opened by [@${authorLogin}](${relIssue.author.url})*`)
+                changesFile.push(`  - :arrow_lower_right: *${relIssuePrefix} issue ${linkToRelIssue} opened by [@${authorLogin}](${relIssue.author.url})*`)
                 changesVar.push(`  - :arrow_lower_right: *${relIssuePrefix} issue #${relIssue.number} opened by @${authorLogin}*`)
               } else {
-                changesFile.push(`  - :arrow_lower_right: *${relIssuePrefix} issue [#${relIssue.number}](${relIssue.url})*`)
+                changesFile.push(`  - :arrow_lower_right: *${relIssuePrefix} issue ${linkToRelIssue}*`)
                 changesVar.push(`  - :arrow_lower_right: *${relIssuePrefix} issue #${relIssue.number}*`)
               }
             }
@@ -28314,7 +28318,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   if (!output.endsWith('\n')) {
     output += '\n'
   }
-  output += `[${latestTag.name}]: ${githubServerUrl}/${owner}/${repo}/compare/${previousTag.name}...${latestTag.name}\n`
+  const outputLink = includeLinksToGithub ? `${githubServerUrl}/${owner}/${repo}/compare/${previousTag.name}...${latestTag.name}\n` : ''
+  output += `[${latestTag.name}]: ${outputLink}\n`
 
   // WRITE CHANGELOG TO FILE
 
