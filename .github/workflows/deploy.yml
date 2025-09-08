@@ -9,7 +9,7 @@ jobs:
 
     steps:
       - name: Checkout Code
-        uses: actions/checkout@v2
+        uses: actions/checkout@v5
         if: ${{ !env.ACT }}
         with:
           fetch-depth: 0
@@ -77,7 +77,7 @@ jobs:
       # LOCAL TEST
 
       - name: (local) Checkout Code
-        uses: actions/checkout@v2
+        uses: actions/checkout@v5
         if: ${{ env.ACT }}
         with:
           path: changelog-action

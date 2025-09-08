@@ -85,9 +85,8 @@ async function main () {
   let previousTag = null
 
   if (tag && (fromTag || toTag)) {
-    return core.setFailed(`Must provide EITHER input tag OR (fromTag and toTag), not both!`)
+    return core.setFailed('Must provide EITHER input tag OR (fromTag and toTag), not both!')
   } else if (tag) {
-
     // GET LATEST + PREVIOUS TAGS
 
     core.info(`Using input tag: ${tag}`)
@@ -121,13 +120,12 @@ async function main () {
     }
 
     if (latestTag.name !== tag) {
-      return core.setFailed(`Provided tag doesn\'t match latest tag ${tag}.`)
+      return core.setFailed(`Provided tag doesn't match latest tag ${tag}.`)
     }
 
     core.info(`Using latest tag: ${latestTag.name}`)
     core.info(`Using previous tag: ${previousTag.name}`)
   } else if (fromTag && toTag) {
-
     // GET FROM + TO TAGS FROM INPUTS
 
     latestTag = { name: fromTag }
@@ -135,7 +133,7 @@ async function main () {
 
     core.info(`Using tag range: ${fromTag} to ${toTag}`)
   } else {
-    return core.setFailed(`Must provide either input tag OR (fromTag and toTag). None were provided!`)
+    return core.setFailed('Must provide either input tag OR (fromTag and toTag). None were provided!')
   }
 
   // GET COMMITS
@@ -372,7 +370,7 @@ async function main () {
   try {
     chglog = await fs.readFile(changelogFilePath, 'utf8')
   } catch (err) {
-    core.info(`Couldn\'t find a ${changelogFilePath}, creating a new one...`)
+    core.info(`Couldn't find a ${changelogFilePath}, creating a new one...`)
     chglog = `# Changelog
 All notable changes to this project will be documented in this file.
 
