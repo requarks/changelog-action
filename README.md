@@ -50,7 +50,7 @@ jobs:
           tag: ${{ github.ref_name }}
 
       - name: Create Release
-        uses: ncipollo/release-action@v1
+        uses: ncipollo/release-action@v1.20.0
         with:
           allowUpdates: true
           draft: false
@@ -104,7 +104,7 @@ jobs:
           writeToFile: false
 
       - name: Create Release
-        uses: ncipollo/release-action@v1
+        uses: ncipollo/release-action@v1.20.0
         with:
           allowUpdates: true
           draft: true
