@@ -165,7 +165,12 @@ async function main () {
   const breakingChanges = []
   for (const commit of commits) {
     try {
-      const cAst = cc.toConventionalChangelogFormat(cc.parser(commit.commit.message))
+      // Parse only the subject line (first line) to extract type/scope/subject.
+      // The full message body can contain code snippets with nested parentheses
+      // (e.g. `foo(a, bar(b))`) that cause @conventional-commits/parser to fail,
+      // since it misinterprets them as conventional commit type(scope) syntax.
+      const subjectLine = commit.commit.message.split('\n')[0]
+      const cAst = cc.toConventionalChangelogFormat(cc.parser(subjectLine))
       commitsParsed.push({
         ...cAst,
         type: cAst.type.toLowerCase(),
@@ -174,30 +179,30 @@ async function main () {
         author: _.get(commit, 'author.login'),
         authorUrl: _.get(commit, 'author.html_url')
       })
-      for (const note of cAst.notes) {
-        if (note.title === 'BREAKING CHANGE') {
-          breakingChanges.push({
-            sha: commit.sha,
-            url: commit.html_url,
-            subject: cAst.subject,
-            author: _.get(commit, 'author.login'),
-            authorUrl: _.get(commit, 'author.html_url'),
-            text: note.text
-          })
-        }
+      // Check for BREAKING CHANGE in the full message body/footers
+      const breakingMatch = commit.commit.message.match(/^BREAKING[ -]CHANGE:\s*(.+(?:\n(?![\w-]+:\s).+)*)/m)
+      if (breakingMatch) {
+        breakingChanges.push({
+          sha: commit.sha,
+          url: commit.html_url,
+          subject: cAst.subject,
+          author: _.get(commit, 'author.login'),
+          authorUrl: _.get(commit, 'author.html_url'),
+          text: breakingMatch[1].trim()
+        })
       }
       core.info(`[OK] Commit ${commit.sha} of type ${cAst.type} - ${cAst.subject}`)
     } catch (err) {
       if (includeInvalidCommits) {
         commitsParsed.push({
           type: 'other',
-          subject: commit.commit.message,
+          subject: commit.commit.message.split('\n')[0],
           sha: commit.sha,
           url: commit.html_url,
           author: _.get(commit, 'author.login'),
           authorUrl: _.get(commit, 'author.html_url')
         })
-        core.info(`[OK] Commit ${commit.sha} with invalid type, falling back to other - ${commit.commit.message}`)
+        core.info(`[OK] Commit ${commit.sha} with invalid type, falling back to other - ${commit.commit.message.split('\n')[0]}`)
       } else {
         core.info(`[INVALID] Skipping commit ${commit.sha} as it doesn't follow conventional commit format.`)
       }
