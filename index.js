@@ -128,8 +128,8 @@ async function main () {
   } else if (fromTag && toTag) {
     // GET FROM + TO TAGS FROM INPUTS
 
-    latestTag = { name: fromTag }
-    previousTag = { name: toTag }
+    previousTag = { name: fromTag }
+    latestTag = { name: toTag }
 
     core.info(`Using tag range: ${fromTag} to ${toTag}`)
   } else {
