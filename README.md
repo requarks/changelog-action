@@ -14,6 +14,7 @@ This GitHub Action automatically generates a changelog based on all the [Convent
 
 - Generates the CHANGELOG changes in Markdown format
 - Turns PR ids into links and add the PR author.
+- Lists the issues / discussions closed by each PR or commit (using [closing keywords](https://docs.github.com/en/get-started/writing-on-github/working-with-advanced-formatting/using-keywords-in-issues-and-pull-requests) such as `fixes #123` in the commit message), along with their author.
 - Prepends a shortened commit SHA ID to the commit for quick access.
 - `BREAKING CHANGE` notes are added to the top of the changelog version along with the related commit.
 - Exports changelog to a variable that can used in a subsequent step to create a release changelog.
@@ -127,7 +128,7 @@ jobs:
 | `restrictToTypes` | A comma-separated list of commit types you want to restrict to for the changelog (e.g. `feat,fix,refactor`). Overrides `excludeTypes` if defined. | :x: | |
 | `writeToFile` | Should CHANGELOG.md be updated with latest changelog | :x: | `true` |
 | `changelogFilePath` | The CHANGELOG.md file path when `writeToFile` is `true` | :x: | `CHANGELOG.md` |
-| `includeRefIssues` | Should the changelog include the issues referenced for each PR. | :x: | `true` |
+| `includeRefIssues` | Should the changelog include the issues referenced for each PR, as well as issues / discussions referenced with [closing keywords](https://docs.github.com/en/get-started/writing-on-github/working-with-advanced-formatting/using-keywords-in-issues-and-pull-requests) (e.g. `fixes #123`) in commit messages. | :x: | `true` |
 | `useGitmojis` | Should type headers be prepended with their related gitmoji | :x: | `true` |
 | `includeInvalidCommits` | Whether to include commits that don't respect the Conventional Commits format | :x: | `false` |
 | `reverseOrder` | List commits in reverse order (from newer to older) instead of the default (older to newer). | :x: | `false` |

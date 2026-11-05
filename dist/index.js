@@ -50744,7 +50744,7 @@ const fs = (__nccwpck_require__(9896).promises)
 const index_process = __nccwpck_require__(932)
 const { setTimeout: index_setTimeout } = __nccwpck_require__(6460)
 
-const githubServerUrl = index_process.env.GITHUB_SERVER_URL || 'https://github.com'
+const githubServerUrl = (index_process.env.GITHUB_SERVER_URL || 'https://github.com').replace(/\/+$/, '')
 
 const allTypes = [
   { types: ['feat', 'feature'], header: 'New Features', icon: ':sparkles:' },
@@ -50761,6 +50761,112 @@ const allTypes = [
 
 const rePrId = /#([0-9]+)/g
 const rePrEnding = /\(#([0-9]+)\)$/
+
+// Closing keywords, as supported by GitHub:
+// https://docs.github.com/en/get-started/writing-on-github/working-with-advanced-formatting/using-keywords-in-issues-and-pull-requests
+// Matches "KEYWORD #123", "KEYWORD: #123", "KEYWORD owner/repo#123" and "KEYWORD <server>/owner/repo/(issues|discussions)/123"
+const escapeRegExp = str => str.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')
+const reClosingRef = new RegExp(
+  '(?<![\\w/-])(?:close[sd]?|fix(?:e[sd])?|resolve[sd]?):?[ \\t]+(?:' +
+  `${escapeRegExp(githubServerUrl)}/([\\w.-]+)/([\\w.-]+)/(?:issues|discussions)/([0-9]+)` +
+  '|' +
+  '(?:([\\w.-]+)/([\\w.-]+))?#([0-9]+)' +
+  ')(?![\\w-])',
+  'gi'
+)
+
+/**
+ * Extract issue / discussion references preceded by a closing keyword from a commit message
+ */
+function parseClosingRefs (message, owner, repo) {
+  const refs = []
+  for (const m of (message || '').matchAll(reClosingRef)) {
+    const refOwner = m[1] || m[4] || owner
+    const refRepo = m[2] || m[5] || repo
+    const number = parseInt(m[3] || m[6])
+    const key = buildRefKey(`${refOwner}/${refRepo}`, number)
+    if (!refs.some(r => r.key === key)) {
+      refs.push({ owner: refOwner, repo: refRepo, number, key })
+    }
+  }
+  return refs
+}
+
+function buildRefKey (nameWithOwner, number) {
+  return `${nameWithOwner}#${number}`.toLowerCase()
+}
+
+/**
+ * Label to display for an issue / discussion: "#123" for the current repo, "owner/repo#123" otherwise
+ */
+function buildRefLabel ({ nameWithOwner, number, owner, repo }) {
+  if (!nameWithOwner || nameWithOwner.toLowerCase() === `${owner}/${repo}`.toLowerCase()) {
+    return `#${number}`
+  }
+  return `${nameWithOwner}#${number}`
+}
+
+/**
+ * Resolve a referenced number to either an issue or a discussion (both share the same numbering).
+ * Returns null if the reference is a pull request or cannot be found.
+ */
+async function fetchClosingRef (gh, ref) {
+  let data
+  try {
+    data = await gh.graphql(`
+      query closingRef ($owner: String!, $repo: String!, $num: Int!) {
+        repository (owner: $owner, name: $repo) {
+          nameWithOwner
+          issueOrPullRequest (number: $num) {
+            __typename
+            ... on Issue {
+              number
+              url
+              author {
+                login
+                url
+              }
+            }
+          }
+          discussion (number: $num) {
+            number
+            url
+            author {
+              login
+              url
+            }
+          }
+        }
+      }
+    `, {
+      owner: ref.owner,
+      repo: ref.repo,
+      num: ref.number
+    })
+  } catch (err) {
+    // Only one of issueOrPullRequest / discussion can exist for a given number,
+    // so a NOT_FOUND error on the other one is expected. Use the partial data.
+    if (err.data) {
+      data = err.data
+    } else {
+      throw err
+    }
+  }
+  const nameWithOwner = _.get(data, 'repository.nameWithOwner')
+  const issue = _.get(data, 'repository.issueOrPullRequest')
+  const discussion = _.get(data, 'repository.discussion')
+  const node = (issue && issue.__typename === 'Issue') ? issue : discussion
+  if (!nameWithOwner || !node) {
+    return null
+  }
+  return {
+    key: buildRefKey(nameWithOwner, node.number),
+    nameWithOwner,
+    number: node.number,
+    url: node.url,
+    author: node.author
+  }
+}
 
 function buildSubject ({ writeToFile, subject, author, authorUrl, owner, repo }) {
   const hasPR = rePrEnding.test(subject)
@@ -50912,6 +51018,7 @@ async function main () {
       commitsParsed.push({
         ...cAst,
         type: cAst.type.toLowerCase(),
+        message: commit.commit.message,
         sha: commit.sha,
         url: commit.html_url,
         author: _.get(commit, 'author.login'),
@@ -50935,6 +51042,7 @@ async function main () {
         commitsParsed.push({
           type: 'other',
           subject: commit.commit.message,
+          message: commit.commit.message,
           sha: commit.sha,
           url: commit.html_url,
           author: _.get(commit, 'author.login'),
@@ -51004,6 +51112,9 @@ async function main () {
   }
   core.info(`Selected Types: ${types.map(t => t.types.join(', ')).join(', ')}`)
 
+  // -> Cache of resolved issue / discussion references (key => ref or null)
+  const closingRefsCache = new Map()
+
   // -> Group commits by type
   for (const type of types) {
     const matchingCommits = commitsParsed.filter(c => type.types.includes(c.type))
@@ -51043,7 +51154,10 @@ async function main () {
       changesFile.push(`- [\`${commit.sha.substring(0, 7)}\`](${commit.url}) - ${scope}${subjectFile.output}`)
       changesVar.push(`- [\`${commit.sha.substring(0, 7)}\`](${commit.url}) - ${scope}${subjectVar.output}`)
 
-      if (includeRefIssues && subjectVar.prs.length > 0) {
+      if (includeRefIssues) {
+        const relIssues = []
+
+        // -> Issues linked to the PR(s)
         for (const prId of subjectVar.prs) {
           core.info(`Querying related issues for PR ${prId}...`)
           await index_setTimeout(500) // Make sure we don't go over GitHub API rate limits
@@ -51056,6 +51170,9 @@ async function main () {
                       nodes {
                         number
                         url
+                        repository {
+                          nameWithOwner
+                        }
                         author {
                           login
                           url
@@ -51070,20 +51187,62 @@ async function main () {
               repo,
               prId: parseInt(prId)
             })
-            const relIssues = _.get(issuesRaw, 'repository.pullRequest.closingIssuesReferences.nodes')
-            for (const relIssue of relIssues) {
-              const authorLogin = _.get(relIssue, 'author.login')
-              const relIssuePrefixDecoration = useGitmojis ? '- :arrow_lower_right:' : '-'
-              if (authorLogin) {
-                changesFile.push(`  ${relIssuePrefixDecoration} *${relIssuePrefix} issue [#${relIssue.number}](${relIssue.url}) opened by [@${authorLogin}](${relIssue.author.url})*`)
-                changesVar.push(`  ${relIssuePrefixDecoration} *${relIssuePrefix} issue #${relIssue.number} opened by @${authorLogin}*`)
-              } else {
-                changesFile.push(`  ${relIssuePrefixDecoration} *${relIssuePrefix} issue [#${relIssue.number}](${relIssue.url})*`)
-                changesVar.push(`  ${relIssuePrefixDecoration} *${relIssuePrefix} issue #${relIssue.number}*`)
+            const prIssues = _.get(issuesRaw, 'repository.pullRequest.closingIssuesReferences.nodes', [])
+            for (const prIssue of prIssues) {
+              const nameWithOwner = _.get(prIssue, 'repository.nameWithOwner', `${owner}/${repo}`)
+              const key = buildRefKey(nameWithOwner, prIssue.number)
+              if (!relIssues.some(r => r.key === key)) {
+                relIssues.push({
+                  key,
+                  nameWithOwner,
+                  number: prIssue.number,
+                  url: prIssue.url,
+                  author: prIssue.author
+                })
               }
             }
           } catch (err) {
             core.warning(`Failed to query issues related to PR ${prId}. Skipping.`)
+          }
+        }
+
+        // -> Issues / discussions referenced with a closing keyword in the commit message
+        const msgRefs = parseClosingRefs(commit.message, owner, repo)
+        for (const ref of msgRefs) {
+          if (relIssues.some(r => r.key === ref.key)) {
+            continue
+          }
+          let relRef = closingRefsCache.get(ref.key)
+          if (relRef === undefined) {
+            core.info(`Querying issue / discussion ${ref.owner}/${ref.repo}#${ref.number} referenced in commit ${commit.sha}...`)
+            await index_setTimeout(500) // Make sure we don't go over GitHub API rate limits
+            try {
+              relRef = await fetchClosingRef(gh, ref)
+              if (!relRef) {
+                core.info(`${ref.owner}/${ref.repo}#${ref.number} is not an issue or discussion. Skipping.`)
+              }
+            } catch (err) {
+              core.warning(`Failed to query ${ref.owner}/${ref.repo}#${ref.number} referenced in commit ${commit.sha}. Skipping.`)
+              relRef = null
+            }
+            closingRefsCache.set(ref.key, relRef)
+          }
+          if (relRef && !relIssues.some(r => r.key === relRef.key)) {
+            relIssues.push(relRef)
+          }
+        }
+
+        // -> Render related issues / discussions
+        const relIssuePrefixDecoration = useGitmojis ? '- :arrow_lower_right:' : '-'
+        for (const relIssue of relIssues) {
+          const label = buildRefLabel({ nameWithOwner: relIssue.nameWithOwner, number: relIssue.number, owner, repo })
+          const authorLogin = _.get(relIssue, 'author.login')
+          if (authorLogin) {
+            changesFile.push(`  ${relIssuePrefixDecoration} *${relIssuePrefix} issue [${label}](${relIssue.url}) opened by [@${authorLogin}](${relIssue.author.url})*`)
+            changesVar.push(`  ${relIssuePrefixDecoration} *${relIssuePrefix} issue ${label} opened by @${authorLogin}*`)
+          } else {
+            changesFile.push(`  ${relIssuePrefixDecoration} *${relIssuePrefix} issue [${label}](${relIssue.url})*`)
+            changesVar.push(`  ${relIssuePrefixDecoration} *${relIssuePrefix} issue ${label}*`)
           }
         }
       }

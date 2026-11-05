@@ -35,7 +35,7 @@ inputs:
     required: false
     default: 'CHANGELOG.md'
   includeRefIssues:
-    description: Should the changelog include the issues referenced for each PR.
+    description: Should the changelog include the issues referenced for each PR, as well as issues / discussions referenced with closing keywords (e.g. "fixes #123") in commit messages.
     required: false
     default: 'true'
   useGitmojis:
