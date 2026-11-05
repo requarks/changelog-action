@@ -4,6 +4,11 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [v1.11.0] - 2026-11-05
+### :sparkles: New Features
+- [`ba4bee7`](https://github.com/requarks/changelog-action/commit/ba4bee7decd5e49aaea253ce8cae5c8602851b49) - handle closing keywords in commits and reference issues/discussions *(commit by [@NGPixel](https://github.com/NGPixel))*
+
+
 ## [v1.10.3] - 2025-09-08
 ### :bug: Bug Fixes
 - [`4fe6d8d`](https://github.com/requarks/changelog-action/commit/4fe6d8d4e49245e9cef5237fa0f07110930a2a11) - omit arrow icon in related issues when useGitmojis is false *(commit by [@NGPixel](https://github.com/NGPixel))*
@@ -143,3 +148,4 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 [v1.10.1]: https://github.com/requarks/changelog-action/compare/v1.10.0...v1.10.1
 [v1.10.2]: https://github.com/requarks/changelog-action/compare/v1.10.1...v1.10.2
 [v1.10.3]: https://github.com/requarks/changelog-action/compare/v1.10.2...v1.10.3
+[v1.11.0]: https://github.com/requarks/changelog-action/compare/v1.10.3...v1.11.0
